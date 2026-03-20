@@ -1,13 +1,22 @@
 import { type App, type FrontMatterCache } from 'obsidian';
 import React, {
-  forwardRef, useEffect, useRef, useState, useImperativeHandle, useMemo,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { type WatermarkProps, Watermark } from '@pansy/react-watermark';
-import Metadata from './Metadata';
-import { lowerCase } from 'lodash';
 import clsx from 'clsx';
-import { getRemoteImageUrl } from 'src/utils/capture';
-import { calculateSplitLines, getElementMeasures } from 'src/utils/split';
+import { lowerCase } from 'lodash';
+import { normalizeAuthorFontFamily } from 'src/utils/authorInfo';
+import { getBodyTypographyStyle } from 'src/utils/bodyTypography';
+import { getCaptureContentHeight } from 'src/utils/pagedCaptureModel';
+import { buildCaptureSplitModel } from 'src/utils/captureSplitModel';
+import { getElementMeasures } from 'src/utils/split';
+import { getAuthorAlign, getAuthorPadding, getBodyPadding } from 'src/utils/pageLayout';
+import Metadata from './Metadata';
+import StaticWatermark from './StaticWatermark';
 
 const alignMap = {
   left: 'flex-start',
@@ -15,63 +24,161 @@ const alignMap = {
   right: 'flex-end',
 };
 
-export interface TargetRef {
+const resolveFrontmatterClassName = (frontmatter: FrontMatterCache | undefined) => {
+  const cssClasses = frontmatter?.cssclasses;
+  if (Array.isArray(cssClasses)) {
+    return cssClasses.join(' ');
+  }
+
+  if (typeof cssClasses === 'string') {
+    return cssClasses;
+  }
+
+  return typeof frontmatter?.cssclass === 'string' ? frontmatter.cssclass : undefined;
+};
+
+export type TargetRef = {
   element: HTMLElement;
   contentElement: HTMLElement;
   setClip: (startY: number, height: number) => void;
   resetClip: () => void;
-}
+};
 
-const Target = forwardRef<
-  TargetRef,
-  {
-    frontmatter: FrontMatterCache | undefined;
-    setting: ISettings;
-    title: string;
-    metadataMap: Record<string, { type: MetadataType }>;
-    markdownEl: Node;
-    app: App;
-    scale?: number;
-    isProcessing: boolean;
-    onSplitChange?: (positions: number[]) => void;
-  }
->(({ frontmatter, setting, title, metadataMap, markdownEl, scale = 1, isProcessing, onSplitChange }, ref) => {
-  const [watermarkProps, setWatermarkProps] = useState<WatermarkProps>({});
+type TargetProps = {
+  frontmatter: FrontMatterCache | undefined;
+  setting: ISettings;
+  title: string;
+  metadataMap: Record<string, { type: MetadataType }>;
+  markdownEl: Node;
+  app: App;
+  scale?: number;
+  isProcessing: boolean;
+  onSplitChange?: (positions: number[]) => void;
+  clipStartY?: number;
+  clipHeight?: number;
+  hideSplitLines?: boolean;
+  editable?: boolean;
+};
+
+const Target = forwardRef<TargetRef, TargetProps>(({
+  frontmatter,
+  setting,
+  title,
+  metadataMap,
+  markdownEl,
+  scale = 1,
+  isProcessing,
+  onSplitChange,
+  clipStartY,
+  clipHeight,
+  hideSplitLines,
+  editable = false,
+}, ref) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const clipRef = useRef<HTMLDivElement>(null);
   const [rootHeight, setRootHeight] = useState(0);
+  const [contentVersion, setContentVersion] = useState(0);
 
   useEffect(() => {
-    if (!rootRef.current) return;
+    if (!rootRef.current) {
+      return undefined;
+    }
+
     const observer = new ResizeObserver(() => {
       if (rootRef.current) {
         setRootHeight(rootRef.current.clientHeight);
       }
     });
+
     observer.observe(rootRef.current);
-    return () => observer.disconnect();
+
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
-  const splitLines = useMemo(() => {
-    if (!rootHeight || setting.split.mode === 'none') return [];
-
-    let elements;
-    if (rootRef.current) {
-      elements = getElementMeasures(rootRef.current, setting.split.mode);
+  useEffect(() => {
+    if (!contentRef.current) {
+      return;
     }
 
-    const lines = calculateSplitLines({
-      mode: setting.split.mode,
-      height: setting.split.height,
-      overlap: setting.split.overlap,
-      totalHeight: rootHeight,
-    }, elements);
+    contentRef.current.innerHTML = '';
+    Array.from(markdownEl.childNodes).forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        if (child.textContent) {
+          contentRef.current?.append(child.textContent);
+        }
 
-    // 通知父组件分页变化
-    onSplitChange?.(lines);
-    return lines;
-  }, [setting.split.height, setting.split.overlap, setting.split.mode, rootHeight, onSplitChange]);
+        return;
+      }
+
+      contentRef.current?.append(child.cloneNode(true));
+    });
+
+    setContentVersion(version => version + 1);
+  }, [markdownEl]);
+
+  useImperativeHandle(ref, () => ({
+    element: clipRef.current!,
+    contentElement: rootRef.current!,
+    setClip(startY: number, height: number) {
+      if (!clipRef.current || !rootRef.current) {
+        return;
+      }
+
+      clipRef.current.style.height = `${height}px`;
+      clipRef.current.style.overflow = 'hidden';
+      rootRef.current.style.transform = `translateY(-${startY}px)`;
+    },
+    resetClip() {
+      if (!clipRef.current || !rootRef.current) {
+        return;
+      }
+
+      clipRef.current.style.height = '';
+      clipRef.current.style.overflow = '';
+      rootRef.current.style.transform = '';
+    },
+  }), []);
+
+  const splitLines = useMemo(() => {
+    if (!rootHeight || !rootRef.current) {
+      return [];
+    }
+
+    const bodyTarget = rootRef.current.querySelector('.export-image-preview-container') as HTMLElement | null;
+    const authorElement = rootRef.current.querySelector('.user-info-container') as HTMLElement | null;
+    const authorHeight = (
+      setting.authorInfo.show
+      && setting.authorInfo.position === 'top'
+      && authorElement
+    ) ? authorElement.clientHeight : 0;
+    const splitTarget = bodyTarget || rootRef.current;
+    const totalHeight = getCaptureContentHeight(splitTarget);
+    const elements = getElementMeasures(splitTarget, setting.split.mode);
+    const { previewLines } = buildCaptureSplitModel({
+      setting,
+      totalHeight,
+      authorHeight,
+      elements,
+    });
+
+    onSplitChange?.(previewLines);
+    return previewLines;
+  }, [
+    contentVersion,
+    onSplitChange,
+    rootHeight,
+    setting.authorInfo.position,
+    setting.authorInfo.show,
+    setting.padding.bottom,
+    setting.padding.top,
+    setting.split.height,
+    setting.split.mode,
+    setting.split.overlap,
+    setting.width,
+  ]);
 
   const splitLineStyle = useMemo(() => ({
     position: 'absolute',
@@ -83,89 +190,70 @@ const Target = forwardRef<
     pointerEvents: 'none',
   } as const), [scale]);
 
-  useEffect(() => {
-    if (!contentRef.current) {
-      return;
-    }
-    contentRef.current.innerHTML = '';
-    Array.from(markdownEl.childNodes).forEach(child => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        if (child.textContent) {
-          contentRef.current?.append(child.textContent);
-        }
-      } else {
-        contentRef.current?.append(child.cloneNode(true));
-      }
-    });
-  }, [markdownEl]);
-
-  useImperativeHandle(ref, () => ({
-    element: clipRef.current!,
-    contentElement: rootRef.current!,
-    setClip: (startY: number, height: number) => {
-      if (!clipRef.current || !rootRef.current) return;
-      clipRef.current.style.height = `${height}px`;
-      clipRef.current.style.overflow = 'hidden';
-      rootRef.current.style.transform = `translateY(-${startY}px)`;
-    },
-    resetClip: () => {
-      if (!clipRef.current || !rootRef.current) return;
-      clipRef.current.style.height = '';
-      clipRef.current.style.overflow = '';
-      rootRef.current.style.transform = '';
-    }
-  }), [clipRef.current, rootRef.current]);
-
-  useEffect(() => {
-    (async () => {
-      const props: WatermarkProps = {
-        monitor: false,
-        mode: 'interval',
-        visible: setting.watermark.enable,
-        rotate: setting.watermark.rotate ?? -30,
-        opacity: setting.watermark.opacity ?? 0.2,
-        height: setting.watermark.height ?? 64,
-        width: setting.watermark.width ?? 120,
-        gapX: setting.watermark.x ?? 100,
-        gapY: setting.watermark.y ?? 100,
+  const separatorStyle = useMemo(() => {
+    if (setting.authorInfo.separator === 'line') {
+      return {
+        [setting.authorInfo.position === 'top' ? 'borderBottom' : 'borderTop']: '1px solid var(--background-modifier-border)',
       };
+    }
 
-      if (setting.watermark.type === 'text') {
-        props.text = setting.watermark.text.content;
-        props.fontSize = setting.watermark.text.fontSize || 16;
-        props.fontColor = setting.watermark.text.color || '#cccccc';
-        props.image = undefined;
-      } else {
-        props.image = await getRemoteImageUrl(setting.watermark.image.src);
-      }
+    if (setting.authorInfo.separator === 'background') {
+      return {
+        background: 'var(--background-secondary)',
+      };
+    }
 
-      setWatermarkProps(props);
-    })();
-  }, [setting]);
+    return {};
+  }, [setting.authorInfo.position, setting.authorInfo.separator]);
+
+  const bodyPadding = useMemo(() => getBodyPadding(setting), [setting]);
+  const authorPadding = useMemo(() => getAuthorPadding(setting), [setting]);
+  const authorAlign = useMemo(() => getAuthorAlign(setting), [setting]);
+  const authorJustify = alignMap[(authorAlign as keyof typeof alignMap)] || alignMap.left;
+  const frontmatterClassName = useMemo(
+    () => resolveFrontmatterClassName(frontmatter),
+    [frontmatter],
+  );
 
   return (
-    <div ref={clipRef}>
+    <div
+      ref={clipRef}
+      style={{
+        height: clipHeight !== undefined ? `${clipHeight}px` : undefined,
+        overflow: clipHeight !== undefined ? 'hidden' : undefined,
+      }}
+    >
       <div
-        className={clsx('export-image-root markdown-reading-view', frontmatter?.cssclasses || frontmatter?.cssclass)}
+        className={clsx('export-image-root markdown-reading-view', frontmatterClassName)}
         ref={rootRef}
         style={{
-          display: 'flex',
-          flexDirection:
-            setting.authorInfo.position === 'bottom'
-              ? 'column'
-              : 'column-reverse',
+          width: `${setting.width}px`,
+          boxSizing: 'border-box',
           backgroundColor:
             setting.format === 'png1' ? 'unset' : 'var(--background-primary)',
           position: 'relative',
+          transform: clipStartY !== undefined ? `translateY(-${clipStartY}px)` : undefined,
         }}
       >
-        <Watermark {...watermarkProps}>
+        <div
+          className='export-image-watermark-content'
+          style={{
+            display: 'flex',
+            flexDirection:
+              setting.authorInfo.position === 'bottom'
+                ? 'column'
+                : 'column-reverse',
+          }}
+        >
           <div
-            className='markdown-preview-view markdown-rendered export-image-preview-container'
+            className={clsx('markdown-preview-view markdown-rendered export-image-preview-container', {
+              'is-editable': editable,
+            })}
             style={{
               width: `${setting.width}px`,
+              boxSizing: 'border-box',
               transition: 'width 0.25s',
-              padding: `${setting.padding.top}px ${setting.padding.right}px ${setting.padding.bottom}px ${setting.padding.left}px`,
+              padding: `${bodyPadding.top}px ${bodyPadding.right}px ${bodyPadding.bottom}px ${bodyPadding.left}px`,
             }}
           >
             {setting.showFilename && (
@@ -190,49 +278,77 @@ const Target = forwardRef<
                   </div>
                 </div>
               )}
-            <div ref={contentRef} className={`export-image-split-${setting.split.mode} export-image-markdown`}></div>
-          </div>
-        </Watermark>
-        {setting.authorInfo.show
-          && (setting.authorInfo.avatar || setting.authorInfo.name) && (
             <div
-              className='user-info-container'
-              style={{
-                [setting.authorInfo.position === 'top'
-                  ? 'borderBottom'
-                  : 'borderTop']: '1px solid var(--background-modifier-border)',
-
-                justifyContent: alignMap[setting.authorInfo.align || 'right'],
-                background:
-                  setting.format === 'png1'
-                    ? 'unset'
-                    : 'var(--background-primary)',
-              }}
-            >
-              {setting.authorInfo.avatar && (
-                <div
-                  className='user-info-avatar'
-                  style={{
-                    backgroundImage: `url(${setting.authorInfo.avatar})`,
-                  }}
-                ></div>
-              )}
-              {setting.authorInfo.name && (
-                <div>
-                  <div className='user-info-name'>{setting.authorInfo.name}</div>
-                  {setting.authorInfo.remark && (
-                    <div className='user-info-remark'>
-                      {setting.authorInfo.remark}
+              ref={contentRef}
+              className={clsx(`export-image-split-${setting.split.mode} export-image-markdown`, {
+                'is-editable': editable,
+              })}
+              contentEditable={editable}
+              suppressContentEditableWarning={editable}
+              onInput={editable ? () => {
+                setContentVersion(version => version + 1);
+              } : undefined}
+              style={getBodyTypographyStyle(setting)}
+            ></div>
+          </div>
+          {setting.authorInfo.show
+            && (setting.authorInfo.avatar || setting.authorInfo.name) && (
+              <div
+                className='user-info-container'
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: `${authorPadding.top}px ${authorPadding.right}px ${authorPadding.bottom}px ${authorPadding.left}px`,
+                  justifyContent: authorJustify,
+                  background:
+                    setting.format === 'png1'
+                      ? 'unset'
+                      : 'var(--background-primary)',
+                  ...separatorStyle,
+                }}
+              >
+                {setting.authorInfo.avatar && (
+                  <div
+                    className='user-info-avatar'
+                    style={{
+                      backgroundImage: `url(${setting.authorInfo.avatar})`,
+                      width: setting.authorInfo.avatarSize,
+                      height: setting.authorInfo.avatarSize,
+                    }}
+                  ></div>
+                )}
+                {setting.authorInfo.name && (
+                  <div className='user-info-text'>
+                    <div
+                      className='user-info-name'
+                      style={{
+                        fontSize: setting.authorInfo.nameFontSize,
+                        fontFamily: normalizeAuthorFontFamily(setting.authorInfo.nameFontFamily),
+                      }}
+                    >
+                      {setting.authorInfo.name}
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        }
-        {!isProcessing && splitLines.map((y, index) => (
+                    {setting.authorInfo.remark && (
+                      <div
+                        className='user-info-remark'
+                        style={{
+                          fontSize: setting.authorInfo.remarkFontSize,
+                          fontFamily: normalizeAuthorFontFamily(setting.authorInfo.remarkFontFamily),
+                        }}
+                      >
+                        {setting.authorInfo.remark}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+        </div>
+        <StaticWatermark setting={setting}></StaticWatermark>
+        {!isProcessing && !hideSplitLines && splitLines.map((y, index) => (
           <div
             key={index}
+            className='export-image-split-line'
             style={{
               ...splitLineStyle,
               top: y,
@@ -246,4 +362,3 @@ const Target = forwardRef<
 });
 
 export default Target;
-

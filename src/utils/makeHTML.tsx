@@ -32,7 +32,7 @@ export default async function makeHTML(
   await MarkdownRenderer.render(
     app,
     markdown,
-    element.createDiv(),
+    element,
     file.path,
     app.workspace.getActiveViewOfType(MarkdownView)
     || app.workspace.activeLeaf?.view

@@ -1,11 +1,11 @@
 {
-	"id": "obsidian-export-image",
-	"name": "Export Image plugin",
+	"id": "export-image-xhs",
+	"name": "Export Image XHS",
 	"version": "2.4.4",
 	"minAppVersion": "1.4.0",
-	"description": "Easily convert your article to image.",
-	"author": "Zhou Hua",
-	"authorUrl": "",
+	"description": "基于 obsidian-export-image 改造，适合中文长图与小红书排版分享的 Obsidian 插件。",
+	"author": "Yufeng Jiao (based on Zhou Hua)",
+	"authorUrl": "https://github.com/buzuweidao/Export-Image-XHS",
 	"isDesktopOnly": false,
-	"sponsor": "https://ko-fi.com/zhouhua"
+	"sponsor": ""
 }

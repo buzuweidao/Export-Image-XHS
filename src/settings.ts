@@ -1,25 +1,34 @@
 import { isCreatable } from './imageFormatTester';
+import { DEFAULT_AUTHOR_FONT_FAMILY } from './utils/authorInfo';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const DEFAULT_SETTINGS: ISettings = {
-  width: 640,
-  showFilename: true,
+  width: 621,
+  bodyFontSize: 18,
+  showFilename: false,
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  resolutionMode: '3x' as ResolutionMode,
+  resolutionMode: '2x' as ResolutionMode,
   format: 'png0',
   showMetadata: false,
   recursive: false,
   quickExportSelection: false,
   padding: {
-    top: 6,
-    right: 6,
-    bottom: 6,
-    left: 6,
+    top: 40,
+    right: 40,
+    bottom: 28,
+    left: 66,
   },
   authorInfo: {
-    show: false,
-    align: 'right',
-    position: 'bottom',
+    show: true,
+    avatarSize: 88,
+    paddingTop: 66,
+    nameFontSize: 25,
+    remarkFontSize: 25,
+    nameFontFamily: DEFAULT_AUTHOR_FONT_FAMILY,
+    remarkFontFamily: DEFAULT_AUTHOR_FONT_FAMILY,
+    separator: 'none',
+    align: 'left',
+    position: 'top',
   },
   watermark: {
     enable: false,
@@ -32,7 +41,7 @@ export const DEFAULT_SETTINGS: ISettings = {
     image: {
       src: '',
     },
-    opacity: 0.2,
+    opacity: 0.06,
     rotate: 30,
     height: 64,
     width: 120,
@@ -42,7 +51,7 @@ export const DEFAULT_SETTINGS: ISettings = {
   split: {
     height: 1000,
     overlap: 80,
-    mode: 'none' as SplitMode,
+    mode: 'xiaohongshu' as SplitMode,
   },
 };
 

@@ -1,3 +1,7 @@
+import { isAutoLikeSplitMode } from './splitMode.js';
+import { calculateAutoLikeSplitPositions } from './splitCore.js';
+import { collectAutoLikeMeasureTargets } from './splitMeasureModel.js';
+
 interface SplitPosition {
   startY: number;
   height: number;
@@ -6,8 +10,10 @@ interface SplitPosition {
 interface SplitOptions {
   mode: SplitMode;
   height: number;
+  firstPageHeight?: number;
   overlap: number;
   totalHeight: number;
+  width?: number;
 }
 
 interface ElementMeasure {
@@ -33,9 +39,9 @@ export function getElementMeasures(container: HTMLElement, mode: SplitMode): Ele
         height: rect.height,
       };
     });
-  } else if (mode === 'auto') {
-    // 查找所有段落元素的位置
-    const paragraphs = Array.from(container.find('.export-image-markdown>div')!.children);
+  } else if (isAutoLikeSplitMode(mode)) {
+    const markdownRoot = container.querySelector('.export-image-markdown');
+    const paragraphs = collectAutoLikeMeasureTargets(markdownRoot);
     const containerRect = container.getBoundingClientRect();
 
     return paragraphs.map((p, index) => {
@@ -72,7 +78,9 @@ export function calculateSplitPositions(
   options: SplitOptions,
   elements?: ElementMeasure[],
 ): SplitPosition[] {
-  const { mode, height, overlap, totalHeight } = options;
+  const {
+    mode, height, firstPageHeight, overlap, totalHeight, width,
+  } = options;
   const positions: SplitPosition[] = [];
   if (mode === 'hr' && elements) {
     // 按分隔线切割
@@ -90,37 +98,15 @@ export function calculateSplitPositions(
     if (lastY < totalHeight) {
       positions.push({ startY: lastY, height: totalHeight - lastY });
     }
-  } else if (mode === 'auto' && elements) {
-    // 按段落自动切割
-    let currentStartY = 0;
-    let currentHeight = 0;
-
-    for (let i = 0; i < elements.length - 1; i++) {
-      const item = elements[i];
-      currentHeight += item.height + (i === 0 ? item.top : 0);
-      if (currentHeight >= height) {
-        positions.push({ startY: currentStartY, height: currentHeight });
-        currentStartY += currentHeight;
-        currentHeight = 0;
-        continue;
-      }
-      const delta = height - currentHeight;
-      if (delta < elements[i + 1].height / 2) {
-        positions.push({ startY: currentStartY, height: currentHeight });
-        currentStartY += currentHeight;
-        currentHeight = 0;
-      }
-    };
-    // 添加最后一部分
-    if (currentStartY < totalHeight) {
-      positions.push({ startY: currentStartY, height: totalHeight - currentStartY });
-    }
+  } else if (isAutoLikeSplitMode(mode) && elements) {
+    positions.push(...calculateAutoLikeSplitPositions(height, totalHeight, elements, firstPageHeight));
   } else {
     // 固定高度模式
+    const effectiveConfiguredHeight = height;
     // 计算最小分割高度：重叠高度 + 50px
     const minSplitHeight = 2 * overlap + 50;
     // 使用设置的高度和最小高度中的较大值
-    const effectiveHeight = Math.max(height, minSplitHeight);
+    const effectiveHeight = Math.max(effectiveConfiguredHeight, minSplitHeight);
     const firstPageHeight = effectiveHeight;
     const remainingHeight = totalHeight - firstPageHeight;
     const additionalPages = Math.max(0, Math.ceil(remainingHeight / (effectiveHeight - overlap * 2)));

@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-export-image",
+  "name": "export-image-xhs",
   "version": "2.4.4",
-  "description": "This Obsidian plugin can easily help you export any article as an image.",
+  "description": "基于 obsidian-export-image 改造，适合中文长图与小红书排版分享的 Obsidian 插件。",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -11,8 +11,22 @@
     "lint": "xo",
     "lint-fix": "xo --fix"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "export-image",
+    "xiaohongshu",
+    "long-image"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/buzuweidao/Export-Image-XHS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/buzuweidao/Export-Image-XHS/issues"
+  },
+  "homepage": "https://github.com/buzuweidao/Export-Image-XHS#readme",
+  "author": "Yufeng Jiao",
   "license": "MIT",
   "devDependencies": {
     "@types/dom-to-image": "^2.6.7",
@@ -37,7 +51,6 @@
     "xo": "^0.60.0"
   },
   "dependencies": {
-    "@pansy/react-watermark": "^3.1.14",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
@@ -49,7 +62,6 @@
     "lodash": "^4.17.21",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-zoom-pan-pinch": "^3.6.1",
     "typesafe-i18n": "^5.26.2"
   }
 }

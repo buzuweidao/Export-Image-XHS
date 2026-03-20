@@ -3,6 +3,7 @@ declare type FileFormat = 'png0' | 'png1' | 'jpg' | 'pdf' | 'webp';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare type ISettings = {
   width?: number;
+  bodyFontSize?: number;
   showFilename: boolean;
   resolutionMode: ResolutionMode;
   format: FileFormat;
@@ -20,6 +21,13 @@ declare type ISettings = {
     name?: string;
     remark?: string;
     avatar?: string;
+    avatarSize?: number;
+    paddingTop?: number;
+    nameFontSize?: number;
+    remarkFontSize?: number;
+    nameFontFamily?: string;
+    remarkFontFamily?: string;
+    separator?: 'none' | 'line' | 'background';
     align?: 'left' | 'center' | 'right';
     position?: 'top' | 'bottom';
   };
@@ -80,6 +88,6 @@ declare type MetadataType =
   | 'tags'
   | 'aliases';
 
-declare type SplitMode = 'none' | 'fixed' | 'hr' | 'auto';
+declare type SplitMode = 'none' | 'fixed' | 'hr' | 'auto' | 'xiaohongshu';
 
 declare type ResolutionMode = '1x' | '2x' | '3x' | '4x';

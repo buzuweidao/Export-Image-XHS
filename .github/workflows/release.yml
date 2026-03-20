@@ -1,4 +1,4 @@
-name: Release Obsidian plugin
+name: Release export-image-xhs
 
 on:
   push:

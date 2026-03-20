@@ -23,7 +23,7 @@ const en = {
   invalidWidth: 'Please set width with a reasonable number.',
   resolutionMode: 'Use resolution image',
   moreSetting:
-    'More detailed settings can be found in the `Export Image` plugin settings.',
+    'More detailed settings can be found in the plugin settings.',
   guide: 'Drag to Move, scroll or pinch to zoom in/out, double click to reset.',
   copyNotAllowed: 'pdf format is not supported for copy',
   exportAll: 'Export Selected Notes',

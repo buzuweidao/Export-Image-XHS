@@ -2,6 +2,7 @@ import type { App } from 'obsidian';
 import L from 'src/L';
 import { formatAvailable } from 'src/settings';
 import { delay } from './utils';
+import { AUTHOR_FONT_OPTIONS } from './utils/authorInfo';
 
 // 从 type.d.ts 中引入类型
 type FileFormat = 'png0' | 'png1' | 'jpg' | 'webp' | 'pdf';
@@ -27,35 +28,41 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       label: L.setting.imageWidth.label(),
       description: L.setting.imageWidth.description(),
       type: 'number',
-      placeholder: '640',
+      placeholder: '621',
+    },
+    {
+      id: 'bodyFontSize',
+      label: '正文字号',
+      type: 'number',
+      placeholder: '18',
     },
     {
       id: 'padding.top',
       label: L.setting.padding.top(),
       description: L.setting.padding.description(),
       type: 'number',
-      placeholder: '6',
+      placeholder: '66',
     },
     {
       id: 'padding.right',
       label: L.setting.padding.right(),
       description: L.setting.padding.description(),
       type: 'number',
-      placeholder: '6',
+      placeholder: '40',
     },
     {
       id: 'padding.bottom',
       label: L.setting.padding.bottom(),
       description: L.setting.padding.description(),
       type: 'number',
-      placeholder: '6',
+      placeholder: '28',
     },
     {
       id: 'padding.left',
       label: L.setting.padding.left(),
       description: L.setting.padding.description(),
       type: 'number',
-      placeholder: '6',
+      placeholder: '66',
     },
     {
       id: 'split.mode',
@@ -67,6 +74,7 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
         { value: 'fixed', text: L.setting.split.mode.fixed() },
         { value: 'hr', text: L.setting.split.mode.hr() },
         { value: 'auto', text: L.setting.split.mode.auto() },
+        { value: 'xiaohongshu', text: '小红书比例（3:4）' },
       ],
     },
     {
@@ -75,7 +83,9 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       description: L.setting.split.height.description(),
       type: 'number',
       placeholder: '1000',
-      show: (settings) => settings.split.mode !== 'none' && settings.split.mode !== 'hr',
+      show: (settings) => settings.split.mode !== 'none'
+        && settings.split.mode !== 'hr'
+        && settings.split.mode !== 'xiaohongshu',
     },
     {
       id: 'split.overlap',
@@ -152,6 +162,59 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       show: (settings) => settings.authorInfo.show,
     },
     {
+      id: 'authorInfo.avatarSize',
+      label: '头像大小',
+      type: 'number',
+      placeholder: '88',
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
+      id: 'authorInfo.paddingTop',
+      label: '作者区上边距',
+      type: 'number',
+      placeholder: '66',
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
+      id: 'authorInfo.nameFontSize',
+      label: '作者名字号',
+      type: 'number',
+      placeholder: '25',
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
+      id: 'authorInfo.nameFontFamily',
+      label: '作者名字体',
+      type: 'dropdown',
+      options: AUTHOR_FONT_OPTIONS.map(option => ({ value: option.value, text: option.text })),
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
+      id: 'authorInfo.remarkFontSize',
+      label: '额外文案字号',
+      type: 'number',
+      placeholder: '25',
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
+      id: 'authorInfo.remarkFontFamily',
+      label: '额外文案字体',
+      type: 'dropdown',
+      options: AUTHOR_FONT_OPTIONS.map(option => ({ value: option.value, text: option.text })),
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
+      id: 'authorInfo.separator',
+      label: '作者区分隔样式',
+      type: 'dropdown',
+      options: [
+        { value: 'none', text: '无分隔' },
+        { value: 'line', text: '细线分隔' },
+        { value: 'background', text: '浅色底' },
+      ],
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
       id: 'authorInfo.position',
       label: L.setting.userInfo.position(),
       type: 'dropdown',
@@ -219,7 +282,7 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       id: 'watermark.opacity',
       label: L.setting.watermark.opacity(),
       type: 'number',
-      placeholder: '0.2',
+      placeholder: '0.06',
       show: (settings) => settings.watermark.enable,
     },
     {

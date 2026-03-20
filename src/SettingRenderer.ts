@@ -10,6 +10,9 @@ import { delay, fileToBase64 } from './utils';
 import ImageSelectModal from './components/common/imageSelectModal';
 import { renderPreview } from './settingPreview';
 import type ExportImagePlugin from './ExportImagePlugin';
+import { getRecommendedPadding, getRecommendedWidth } from './utils/splitMode.js';
+import { updateSettingsAtPath } from './utils/settingsUpdate.js';
+import { PROJECT_LINKS } from './utils/projectLinks.js';
 
 export class SettingRenderer {
   private app: App;
@@ -29,16 +32,14 @@ export class SettingRenderer {
   }
 
   private async updateSetting(path: string, value: any) {
-    const keys = path.split('.');
-    const lastKey = keys.pop()!;
-    const target = keys.reduce((obj: any, key: string) => {
-      if (!(key in obj)) {
-        obj[key] = {};
+    this.plugin.settings = updateSettingsAtPath(this.plugin.settings, path, value) as ISettings;
+    if (path === 'split.mode') {
+      const recommendedWidth = getRecommendedWidth(value as SplitMode, this.plugin.settings.width);
+      if (recommendedWidth) {
+        this.plugin.settings.width = recommendedWidth;
       }
-      return obj[key];
-    }, this.plugin.settings as any);
-
-    target[lastKey] = value;
+      this.plugin.settings.padding = getRecommendedPadding(value as SplitMode, this.plugin.settings.padding);
+    }
     await this.plugin.saveSettings();
     await this.render(undefined);
   }
@@ -49,13 +50,22 @@ export class SettingRenderer {
     }
     this.containerEl.empty();
     this.containerEl.createEl('h3', { text: L.setting.title() });
-    this.containerEl.createEl('p', { text: 'Github: ' }).createEl('a', {
-      text: 'zhouhua/obsidian-export-image',
-      attr: {
-        href: 'https://github.com/zhouhua/obsidian-export-image',
-        target: '_blank',
-      },
-    });
+
+    const projectLinksSetting = new Setting(this.containerEl)
+      .setName('项目链接')
+      .setDesc('查看 GitHub 仓库或提交问题反馈。');
+
+    projectLinksSetting
+      .addButton(button => {
+        button
+          .setButtonText('GitHub 仓库')
+          .onClick(() => window.open(PROJECT_LINKS.repoUrl, '_blank'));
+      })
+      .addButton(button => {
+        button
+          .setButtonText('问题反馈')
+          .onClick(() => window.open(PROJECT_LINKS.issuesUrl, '_blank'));
+      });
 
     // 使用配置渲染设置项
     this.settingItems.forEach(item => {

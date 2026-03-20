@@ -1,12 +1,12 @@
 import React, { type FC, useEffect, useRef, useCallback, useState } from 'react';
 import get from 'lodash/get';
-import set from 'lodash/set';
 import debounce from 'lodash/debounce';
 import { requestUrl, setIcon, type App, Modal } from 'obsidian';
 import { fileToBase64 } from '../../../utils';
 import L from '../../../L';
 import ImageSelectModal from '../imageSelectModal';
 import { getRemoteImageUrl } from 'src/utils/capture';
+import { updateSettingsAtPath } from 'src/utils/settingsUpdate.js';
 
 const Control: FC<{
   fieldSchema: FieldSchema<ISettings>;
@@ -19,8 +19,7 @@ const Control: FC<{
   const inputReference = useRef<HTMLInputElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const onChange = (value: any) => {
-    const newSetting = { ...setting };
-    set(newSetting, fieldSchema.path, value);
+    const newSetting = updateSettingsAtPath(setting, fieldSchema.path, value) as ISettings;
     update(newSetting);
   };
 

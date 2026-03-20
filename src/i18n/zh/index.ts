@@ -21,7 +21,7 @@ const zh = {
   loading: '正在加载文档内容...',
   invalidWidth: '请设置合理的宽度。',
   resolutionMode: '输出高分辨率的图片',
-  moreSetting: '更详细的配置请进入 Export Image 插件的设置界面。',
+  moreSetting: '更详细的配置请进入插件设置界面。',
   guide: '拖动可移动，滚轮或双指滑动可放大/缩小，双击可重置。',
   copyNotAllowed: 'pdf 格式不支持复制',
   exportAll: '导出所选笔记',

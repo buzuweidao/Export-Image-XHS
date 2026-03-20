@@ -21,7 +21,7 @@ const it = {
   loading: 'Caricamento del contenuto del documento...',
   invalidWidth: 'Imposta una larghezza ragionevole.',
   resolutionMode: 'Usa immagine in alta risoluzione',
-  moreSetting: 'Ulteriori impostazioni si trovano nelle impostazioni del plugin `Export Image`.',
+  moreSetting: 'Ulteriori impostazioni si trovano nelle impostazioni del plugin.',
   guide: 'Trascina per muovere, scorri o pizzica per ingrandire/rimpicciolire, doppio clic per ripristinare.',
   copyNotAllowed: 'Il formato pdf non è supportato per la copia',
   exportAll: 'Esporta note selezionate',

@@ -15,6 +15,7 @@ import exportFolder from './components/folder/exportFolder';
 import { createSettingConfig } from './formConfig';
 import { SettingRenderer } from './SettingRenderer';
 import exportImage from './components/file/exportImage';
+import { normalizeAuthorFontFamily } from './utils/authorInfo';
 
 export default class ExportImagePlugin extends Plugin {
   settings: ISettings;
@@ -168,7 +169,45 @@ export default class ExportImagePlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = { ...DEFAULT_SETTINGS, ...(await this.loadData() as ISettings) };
+    const data = await this.loadData() as Partial<ISettings> | null;
+    const authorInfo = {
+      ...DEFAULT_SETTINGS.authorInfo,
+      ...(data?.authorInfo ?? {}),
+    };
+
+    this.settings = {
+      ...DEFAULT_SETTINGS,
+      ...(data ?? {}),
+      padding: {
+        ...DEFAULT_SETTINGS.padding,
+        ...(data?.padding ?? {}),
+      },
+      authorInfo: {
+        ...authorInfo,
+        nameFontFamily: normalizeAuthorFontFamily(authorInfo.nameFontFamily),
+        remarkFontFamily: normalizeAuthorFontFamily(authorInfo.remarkFontFamily),
+      },
+      watermark: {
+        ...DEFAULT_SETTINGS.watermark,
+        ...(data?.watermark ?? {}),
+        text: {
+          ...DEFAULT_SETTINGS.watermark.text,
+          ...(data?.watermark?.text ?? {}),
+        },
+        image: {
+          ...DEFAULT_SETTINGS.watermark.image,
+          ...(data?.watermark?.image ?? {}),
+        },
+      },
+      split: {
+        ...DEFAULT_SETTINGS.split,
+        ...(data?.split ?? {}),
+      },
+    };
+
+    if ((this.settings.split.mode as string) === 'xiaohongshu35') {
+      this.settings.split.mode = 'xiaohongshu';
+    }
   }
 
   async saveSettings() {

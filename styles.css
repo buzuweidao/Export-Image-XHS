@@ -65,6 +65,12 @@ If your plugin does not need CSS, delete this file.
 
 .export-image-preview-out {
   width: 100%;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 0 24px;
+  box-sizing: border-box;
   transition: width 0.25s;
   background-size: 20px 20px;
   background-position: 0 0, 10px 10px;
@@ -90,10 +96,18 @@ If your plugin does not need CSS, delete this file.
   font-size: 12px;
   margin-top: 16px;
 }
+
+.export-image-preview-live-frame {
+  flex-shrink: 0;
+  border: 1px var(--divider-color) solid;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.15);
+}
 .export-image-root .user-info-container {
   display: flex;
-  padding: 16px 32px;
-  alignitems: center;
+  align-items: center;
+  gap: 12px;
 }
 .user-info-avatar {
   width: 36px;
@@ -101,16 +115,49 @@ If your plugin does not need CSS, delete this file.
   border-radius: 50%;
   border: 1px solid var(--background-modifier-border);
   background-size: cover;
-  margin: 0 20px;
+  background-position: center;
+  flex-shrink: 0;
+  margin: 0;
+}
+.export-image-root .user-info-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
 }
 .export-image-root .user-info-name {
   font-size: 16px;
-  padding-bottom: 6px;
+  line-height: 1.2;
+  padding-bottom: 0;
 }
 .export-image-root .user-info-remark {
   opacity: 0.5;
   font-size: 12px;
+  line-height: 1.2;
   white-space: nowrap;
+}
+
+.export-image-root .export-image-markdown > :first-child {
+  margin-top: 0 !important;
+}
+
+.export-image-preview-container.is-editable {
+  pointer-events: auto;
+}
+
+.export-image-markdown.is-editable {
+  min-height: 1.5em;
+  cursor: text;
+  user-select: text;
+}
+
+.export-image-markdown.is-editable:focus {
+  outline: none;
+}
+
+.export-image-markdown.is-editable a {
+  pointer-events: none;
 }
 
 .export-image-preview-actions {
@@ -193,9 +240,27 @@ If your plugin does not need CSS, delete this file.
   justify-content: center;
 }
 
-.export-image-setting-preview-mock {
+.export-image-setting-preview-surface {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.export-image-setting-preview-mock {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.export-image-watermark-content {
+  position: relative;
+  z-index: 1;
+}
+
+.export-image-static-watermark {
+  border-radius: inherit;
 }
 
 .export-image-progress-bar {
@@ -278,6 +343,406 @@ If your plugin does not need CSS, delete this file.
   text-align: center;
   font-weight: 500;
   opacity: 0.8;
+}
+
+.export-image-preview-measure {
+  position: fixed;
+  left: -99999px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.export-image-preview-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 0 24px;
+  box-sizing: border-box;
+}
+
+.export-image-preview-pages-count {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background-primary) 92%, transparent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.export-image-preview-pages-count button {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+}
+
+.export-image-draft-global-toolbar {
+  position: sticky;
+  top: 44px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100% - 24px);
+  margin: -8px auto 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background-primary) 94%, transparent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.export-image-draft-global-toolbar-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.export-image-draft-global-toolbar button,
+.export-image-draft-global-toolbar select {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+}
+
+.export-image-preview-page-shell {
+  position: relative;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.export-image-preview-page-scale {
+  transform-origin: top left;
+}
+
+.export-image-preview-page-content {
+  position: relative;
+  border: 1px var(--divider-color) solid;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.15);
+  background: var(--background-primary);
+}
+
+.export-image-preview-page-shell.is-selected .export-image-preview-page-content,
+.export-image-preview-page-content.is-selected {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 18%, transparent), 0 0 18px rgba(0, 0, 0, 0.16);
+}
+
+.export-image-preview-page-viewport {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.export-image-preview-page-index {
+  margin-top: 8px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.export-image-preview-page-warning {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-red) 14%, transparent);
+  color: var(--color-red);
+}
+
+.export-image-draft-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.export-image-draft-page .export-image-preview-container {
+  pointer-events: auto;
+}
+
+.export-image-paged-page .export-image-preview-container,
+.export-image-paged-page .export-image-paged-page-body,
+.export-image-paged-page .export-image-paged-editor-track,
+.export-image-paged-page .export-image-paged-editor {
+  pointer-events: auto;
+}
+
+.export-image-draft-page-inner {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--background-primary);
+}
+
+.export-image-draft-page-body {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.export-image-paged-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+.export-image-paged-page-inner {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--background-primary);
+}
+
+.export-image-paged-page-body {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.export-image-paged-page-frame {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.export-image-paged-editor-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.export-image-paged-editor-track {
+  width: 100%;
+  min-height: 100%;
+  will-change: transform;
+  transition: transform 0.2s ease;
+  overflow: hidden;
+}
+
+.export-image-paged-editor {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  outline: none;
+  cursor: text;
+  overflow: visible;
+  position: relative;
+  z-index: 3;
+}
+
+.export-image-paged-editor:focus {
+  outline: none;
+}
+
+.export-image-paged-editor-static {
+  pointer-events: none;
+}
+
+.export-image-paged-editor-spacer {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+.export-image-paged-editor-spacer-top,
+.export-image-paged-editor-spacer-bottom {
+  width: 100%;
+}
+
+.export-image-draft-flow-measure {
+  box-sizing: border-box;
+}
+
+.export-image-draft-page-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: calc(100% - 24px);
+}
+
+.export-image-draft-page-toolbar button,
+.export-image-draft-page-toolbar select {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.export-image-draft-markdown {
+  position: relative;
+}
+
+.export-image-draft-block {
+  position: relative;
+}
+
+.export-image-draft-block[data-draft-block-break="true"] {
+  padding-top: 18px;
+}
+
+.export-image-draft-block[data-draft-block-break="true"]::before {
+  content: "分页点";
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--interactive-accent) 16%, transparent);
+  color: var(--interactive-accent);
+  font-size: 11px;
+}
+
+.export-image-draft-block-inner > :first-child,
+.export-image-draft-page-editor > :first-child {
+  margin-top: 0 !important;
+}
+
+.export-image-draft-block-inner > :last-child,
+.export-image-draft-page-editor > :last-child {
+  margin-bottom: 0 !important;
+}
+
+.export-image-draft-block-inner,
+.export-image-draft-page-editor {
+  outline: none;
+  cursor: text;
+}
+
+.export-image-draft-page-editor {
+  min-height: 100%;
+}
+
+.export-image-draft-page-editor:focus {
+  outline: 1px dashed var(--interactive-accent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.export-image-draft-split-line {
+  margin: 0;
+}
+
+.export-image-draft-density-compact .export-image-draft-block-inner p,
+.export-image-draft-density-compact .export-image-draft-block-inner li,
+.export-image-draft-density-compact .export-image-draft-page-editor p,
+.export-image-draft-density-compact .export-image-draft-page-editor li {
+  line-height: 1.55;
+}
+
+.export-image-draft-density-compact .export-image-draft-block-inner p,
+.export-image-draft-density-compact .export-image-draft-block-inner ul,
+.export-image-draft-density-compact .export-image-draft-block-inner ol,
+.export-image-draft-density-compact .export-image-draft-block-inner blockquote,
+.export-image-draft-density-compact .export-image-draft-page-editor p,
+.export-image-draft-density-compact .export-image-draft-page-editor ul,
+.export-image-draft-density-compact .export-image-draft-page-editor ol,
+.export-image-draft-density-compact .export-image-draft-page-editor blockquote {
+  margin-block: 0.65em;
+}
+
+.export-image-draft-density-compact .export-image-draft-block-inner h1,
+.export-image-draft-density-compact .export-image-draft-block-inner h2,
+.export-image-draft-density-compact .export-image-draft-block-inner h3,
+.export-image-draft-density-compact .export-image-draft-block-inner h4,
+.export-image-draft-density-compact .export-image-draft-page-editor h1,
+.export-image-draft-density-compact .export-image-draft-page-editor h2,
+.export-image-draft-density-compact .export-image-draft-page-editor h3,
+.export-image-draft-density-compact .export-image-draft-page-editor h4 {
+  margin-block: 0.7em 0.5em;
+}
+
+.export-image-draft-density-tight .export-image-draft-block-inner p,
+.export-image-draft-density-tight .export-image-draft-block-inner li,
+.export-image-draft-density-tight .export-image-draft-page-editor p,
+.export-image-draft-density-tight .export-image-draft-page-editor li {
+  line-height: 1.42;
+}
+
+.export-image-draft-density-tight .export-image-draft-block-inner p,
+.export-image-draft-density-tight .export-image-draft-block-inner ul,
+.export-image-draft-density-tight .export-image-draft-block-inner ol,
+.export-image-draft-density-tight .export-image-draft-block-inner blockquote,
+.export-image-draft-density-tight .export-image-draft-page-editor p,
+.export-image-draft-density-tight .export-image-draft-page-editor ul,
+.export-image-draft-density-tight .export-image-draft-page-editor ol,
+.export-image-draft-density-tight .export-image-draft-page-editor blockquote {
+  margin-block: 0.5em;
+}
+
+.export-image-draft-density-tight .export-image-draft-block-inner h1,
+.export-image-draft-density-tight .export-image-draft-block-inner h2,
+.export-image-draft-density-tight .export-image-draft-block-inner h3,
+.export-image-draft-density-tight .export-image-draft-block-inner h4,
+.export-image-draft-density-tight .export-image-draft-page-editor h1,
+.export-image-draft-density-tight .export-image-draft-page-editor h2,
+.export-image-draft-density-tight .export-image-draft-page-editor h3,
+.export-image-draft-density-tight .export-image-draft-page-editor h4 {
+  margin-block: 0.55em 0.4em;
+}
+
+.export-image-draft-page-body .export-image-draft-block-inner p,
+.export-image-draft-page-body .export-image-draft-block-inner li,
+.export-image-draft-page-body .export-image-draft-page-editor p,
+.export-image-draft-page-body .export-image-draft-page-editor li,
+.export-image-paged-page-body .export-image-paged-editor p,
+.export-image-paged-page-body .export-image-paged-editor li,
+.export-image-draft-flow-measure .export-image-draft-block-inner p,
+.export-image-draft-flow-measure p,
+.export-image-draft-flow-measure .export-image-draft-block-inner li {
+  line-height: var(--export-draft-line-height, 1.7);
+}
+
+.export-image-draft-page-body .export-image-draft-block-inner p,
+.export-image-draft-page-body .export-image-draft-block-inner ul,
+.export-image-draft-page-body .export-image-draft-block-inner ol,
+.export-image-draft-page-body .export-image-draft-block-inner blockquote,
+.export-image-draft-page-body .export-image-draft-page-editor p,
+.export-image-draft-page-body .export-image-draft-page-editor ul,
+.export-image-draft-page-body .export-image-draft-page-editor ol,
+.export-image-draft-page-body .export-image-draft-page-editor blockquote,
+.export-image-paged-page-body .export-image-paged-editor p,
+.export-image-paged-page-body .export-image-paged-editor ul,
+.export-image-paged-page-body .export-image-paged-editor ol,
+.export-image-paged-page-body .export-image-paged-editor blockquote,
+.export-image-draft-flow-measure .export-image-draft-block-inner p,
+.export-image-draft-flow-measure p,
+.export-image-draft-flow-measure .export-image-draft-block-inner ul,
+.export-image-draft-flow-measure ul,
+.export-image-draft-flow-measure .export-image-draft-block-inner ol,
+.export-image-draft-flow-measure ol,
+.export-image-draft-flow-measure .export-image-draft-block-inner blockquote,
+.export-image-draft-flow-measure blockquote {
+  margin-block: var(--export-draft-paragraph-spacing, 0.9em);
 }
 
 @keyframes spin {
