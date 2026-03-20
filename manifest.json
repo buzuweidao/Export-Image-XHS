@@ -3,9 +3,8 @@
 	"name": "Export Image XHS",
 	"version": "2.4.5",
 	"minAppVersion": "1.4.0",
-	"description": "基于 obsidian-export-image 改造，适合中文长图与小红书排版分享的 Obsidian 插件。",
+	"description": "Export notes as shareable multi-image cards with editable live preview, Xiaohongshu-oriented layout, author header, watermark, and pagination controls.",
 	"author": "buzuweidao",
 	"authorUrl": "https://github.com/buzuweidao",
-	"isDesktopOnly": false,
-	"sponsor": ""
+	"isDesktopOnly": false
 }
