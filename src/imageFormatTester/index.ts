@@ -1,9 +1,25 @@
+import { requestUrl } from 'obsidian';
 import {getMime} from 'src/utils';
 import {jpg, png, webp} from './tiny';
 
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, content] = dataUrl.split(',');
+  const mime = /data:(.*?);base64/.exec(header)?.[1] || 'application/octet-stream';
+  const binary = atob(content);
+  const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+  return new Blob([bytes], { type: mime });
+}
+
 async function tester(image: string) {
   try {
-    const blob = await (await fetch(image)).blob();
+    const blob = image.startsWith('data:')
+      ? dataUrlToBlob(image)
+      : new Blob([(
+        await requestUrl({
+          url: image,
+          method: 'GET',
+        })
+      ).arrayBuffer]);
     const data: ClipboardItem[] = [];
     data.push(
       new ClipboardItem({
@@ -13,7 +29,7 @@ async function tester(image: string) {
     await navigator.clipboard.write(data);
     return true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return false;
   }
 }

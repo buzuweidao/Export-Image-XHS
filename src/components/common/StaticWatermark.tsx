@@ -28,18 +28,22 @@ const StaticWatermark = ({
   useEffect(() => {
     let disposed = false;
 
-    (async () => {
-      const result = await createWatermarkPattern(
-        setting.watermark,
-        getRemoteImageUrl,
-      );
+    void (async () => {
+      try {
+        const result = await createWatermarkPattern(
+          setting.watermark,
+          getRemoteImageUrl,
+        );
 
-      if (disposed) {
-        return;
+        if (disposed) {
+          return;
+        }
+
+        setPatternUrl(result.patternUrl);
+        setTile(result.tile);
+      } catch (error) {
+        console.error(error);
       }
-
-      setPatternUrl(result.patternUrl);
-      setTile(result.tile);
     })();
 
     return () => {

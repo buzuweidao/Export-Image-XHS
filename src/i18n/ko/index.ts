@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { split } from 'lodash';
 import type { BaseTranslation } from '../i18n-types';
 

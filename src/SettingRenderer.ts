@@ -6,7 +6,7 @@ import {
 } from 'obsidian';
 import type { SettingItem } from './formConfig';
 import L from './L';
-import { delay, fileToBase64 } from './utils';
+import { fileToBase64 } from './utils';
 import ImageSelectModal from './components/common/imageSelectModal';
 import { renderPreview } from './settingPreview';
 import type ExportImagePlugin from './ExportImagePlugin';
@@ -18,20 +18,24 @@ export class SettingRenderer {
   private app: App;
   private plugin: ExportImagePlugin;
   private containerEl: HTMLElement;
-  private settingItems: SettingItem[];
+  private settingItems: SettingItem[] = [];
   constructor(app: App, plugin: ExportImagePlugin, containerEl: HTMLElement) {
     this.app = app;
     this.plugin = plugin;
     this.containerEl = containerEl;
   }
 
-  private getSettingValue(path: string): any {
-    return path.split('.').reduce((obj: any, key: string) => {
-      return obj && typeof obj === 'object' ? obj[key] : undefined;
+  private getSettingValue(path: string): unknown {
+    return path.split('.').reduce<unknown>((obj, key) => {
+      if (!obj || typeof obj !== 'object') {
+        return undefined;
+      }
+
+      return (obj as Record<string, unknown>)[key];
     }, this.plugin.settings);
   }
 
-  private async updateSetting(path: string, value: any) {
+  private async updateSetting(path: string, value: unknown) {
     this.plugin.settings = updateSettingsAtPath(this.plugin.settings, path, value) as ISettings;
     if (path === 'split.mode') {
       const recommendedWidth = getRecommendedWidth(value as SplitMode, this.plugin.settings.width);
@@ -83,7 +87,7 @@ export class SettingRenderer {
       switch (item.type) {
         case 'text':
           setting.addText(text => {
-            text.setValue(this.getSettingValue(item.id) ?? '')
+            text.setValue(String(this.getSettingValue(item.id) ?? ''))
               .onChange(async value => {
                 await this.updateSetting(item.id, value);
               });
@@ -103,7 +107,7 @@ export class SettingRenderer {
 
         case 'toggle':
           setting.addToggle(toggle => {
-            toggle.setValue(this.getSettingValue(item.id) ?? false)
+            toggle.setValue(Boolean(this.getSettingValue(item.id)))
               .onChange(async value => {
                 await this.updateSetting(item.id, value);
               });
@@ -118,7 +122,7 @@ export class SettingRenderer {
                   item.options!.map(opt => [opt.value, opt.text])
                 )
               )
-                .setValue(this.getSettingValue(item.id))
+                .setValue(String(this.getSettingValue(item.id) ?? ''))
                 .onChange(async value => {
                   await this.updateSetting(item.id, value);
                 });
@@ -128,7 +132,7 @@ export class SettingRenderer {
 
         case 'color':
           setting.addColorPicker(picker => {
-            picker.setValue(this.getSettingValue(item.id) ?? item.defaultValue)
+            picker.setValue(String(this.getSettingValue(item.id) ?? item.defaultValue ?? ''))
               .onChange(async value => {
                 await this.updateSetting(item.id, value);
               });
@@ -158,7 +162,7 @@ export class SettingRenderer {
           if (this.getSettingValue(item.id)) {
             previewDiv.createEl('img', {
               attr: {
-                src: this.getSettingValue(item.id),
+                src: String(this.getSettingValue(item.id)),
                 alt: 'preview',
                 style: 'width: 100%; height: 100%; object-fit: cover',
               },
@@ -188,8 +192,8 @@ export class SettingRenderer {
           });
 
           setIcon(deleteButton, 'x');
-          deleteButton.onclick = async () => {
-            await this.updateSetting(item.id, undefined);
+          deleteButton.onclick = () => {
+            void this.updateSetting(item.id, undefined);
           };
 
           // 添加上传按钮
@@ -206,13 +210,15 @@ export class SettingRenderer {
 
           uploadButton.onclick = () => fileInput.click();
 
-          fileInput.onchange = async () => {
-            const file = fileInput.files?.[0];
-            if (file) {
-              const base64 = await fileToBase64(file);
-              await this.updateSetting(item.id, base64);
-              fileInput.value = '';
-            }
+          fileInput.onchange = () => {
+            void (async () => {
+              const file = fileInput.files?.[0];
+              if (file) {
+                const base64 = await fileToBase64(file);
+                await this.updateSetting(item.id, base64);
+                fileInput.value = '';
+              }
+            })();
           };
 
           // 添加选择按钮
@@ -221,8 +227,8 @@ export class SettingRenderer {
           });
 
           selectButton.onclick = () => {
-            const modal = new ImageSelectModal(this.app, async (img) => {
-              await this.updateSetting(item.id, img);
+            const modal = new ImageSelectModal(this.app, (img) => {
+              void this.updateSetting(item.id, img);
               modal.close();
             });
             modal.open();
@@ -233,8 +239,7 @@ export class SettingRenderer {
             text: L.imageUrl(),
           });
 
-          urlButton.onclick = async () => {
-            const currentValue = this.getSettingValue(item.id) || '';
+          urlButton.onclick = () => {
             const modal = new Modal(this.app);
             modal.titleEl.setText(L.imageUrl());
 
@@ -251,10 +256,14 @@ export class SettingRenderer {
               }
             });
 
-            input.onkeydown = async (e) => {
+            const commitUrl = () => {
+              void this.updateSetting(item.id, input.value);
+              modal.close();
+            };
+
+            input.onkeydown = (e) => {
               if (e.key === 'Enter') {
-                await this.updateSetting(item.id, input.value);
-                modal.close();
+                commitUrl();
               } else if (e.key === 'Escape') {
                 modal.close();
               }
@@ -271,9 +280,8 @@ export class SettingRenderer {
               text: L.confirm(),
               cls: 'mod-cta'
             });
-            confirmButton.onclick = async () => {
-              await this.updateSetting(item.id, input.value);
-              modal.close();
+            confirmButton.onclick = () => {
+              commitUrl();
             };
 
             buttonDiv.createEl('button', { text: L.cancel() }).onclick = () => {

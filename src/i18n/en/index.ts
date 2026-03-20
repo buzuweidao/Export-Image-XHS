@@ -1,21 +1,19 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Translation } from '../i18n-types';
 
 const en = {
-  // TODO: your translations go here
   command: 'Export as an image',
   noActiveFile: 'Please open an article first!',
-  imageExportPreview: 'Image Export Preview',
+  imageExportPreview: 'Image export preview',
   copiedSuccess: 'Copied to clipboard',
-  copy: 'Copy to Clipboard',
+  copy: 'Copy to clipboard',
   copyFail: 'Failed to copy',
   notAllowCopy: 'Unable to directly copy {format} format',
-  save: 'Save Image',
+  save: 'Save image',
   saveSuccess: 'Export and save the image as {filePath}.',
   saveFail: 'Failed to save the image',
-  saveVault: 'Save to Vault',
-  includingFilename: 'Including File Name As Title',
-  imageWidth: 'Image Width',
+  saveVault: 'Save to vault',
+  includingFilename: 'Include file name as title',
+  imageWidth: 'Image width',
   exportImage: 'Export to image',
   exportSelectionImage: 'Export selection to image',
   exportFolder: 'Export all notes to image',
@@ -24,20 +22,20 @@ const en = {
   resolutionMode: 'Use resolution image',
   moreSetting:
     'More detailed settings can be found in the plugin settings.',
-  guide: 'Drag to Move, scroll or pinch to zoom in/out, double click to reset.',
-  copyNotAllowed: 'pdf format is not supported for copy',
-  exportAll: 'Export Selected Notes',
+  guide: 'Drag to move, scroll or pinch to zoom in/out, double click to reset.',
+  copyNotAllowed: 'PDF format is not supported for copy',
+  exportAll: 'Export selected notes',
   noMarkdownFile: 'No markdown files in the current directory',
-  selectAll: 'Select All',
+  selectAll: 'Select all',
   setting: {
-    title: 'Export Image',
+    title: 'Export image',
     imageWidth: {
       label: 'Default exported image width',
       description:
         'Set the width of the exported image in pixel. The default is 640px.',
     },
     padding: {
-      title: 'Image Padding',
+      title: 'Image padding',
       description: 'Set padding for the exported image. The default is 6px for all sides.',
       top: 'Top padding',
       right: 'Right padding',
@@ -45,7 +43,7 @@ const en = {
       left: 'Left padding',
     },
     split: {
-      title: 'Split Image',
+      title: 'Split image',
       mode: {
         label: 'Split mode',
         description: 'Choose whether to split the image, and how to split. Fixed height means each split image has a fixed height, which may cut off text at the split point. Split by horizontal rule means split the image by the horizontal rule in the document. Auto split by paragraph means split the image by the paragraph, ensuring that a paragraph is not split into two images, and the height is as close as possible to the split height.',

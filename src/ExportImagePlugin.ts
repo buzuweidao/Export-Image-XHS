@@ -55,13 +55,11 @@ export default class ExportImagePlugin extends Plugin {
 
     this.registerEvent(
       this.app.workspace.on('editor-menu', (menu, editor) => {
-        const file: TFile
-          // @ts-ignore: Obsidian ts defined incomplete.
-          = editor.editorComponent.file as (TFile | undefined) ?? this.app.workspace.getActiveFile()!;
-        const frontmatter = getMetadata(file, this.app);
+        const file = this.app.workspace.getActiveFile();
         if (!file) {
           return;
         }
+        const frontmatter = getMetadata(file, this.app);
 
         if (editor.somethingSelected()) {
           menu.addItem(item => {
@@ -106,7 +104,7 @@ export default class ExportImagePlugin extends Plugin {
         // If checking is true, we're simply "checking" if the command can be run.
         // If checking is false, then we want to actually perform the operation.
         if (!checking) {
-          (async () => {
+          void (async () => {
             const activeFile = this.app.workspace.getActiveFile();
             if (
               !activeFile
@@ -126,7 +124,9 @@ export default class ExportImagePlugin extends Plugin {
               frontmatter,
               'file',
             );
-          })();
+          })().catch(error => {
+            console.error(error);
+          });
         }
         // This command will only show up in Command Palette when the check function returns true
         return true;
@@ -147,14 +147,16 @@ export default class ExportImagePlugin extends Plugin {
           return false;
         }
         if (!checking) {
-          exportImage(
+          void exportImage(
             this.app,
             this.settings,
             selection,
             file,
             frontmatter,
             'selection',
-          );
+          ).catch(error => {
+            console.error(error);
+          });
         }
         return true;
       },
@@ -225,7 +227,11 @@ class ImageSettingTab extends PluginSettingTab {
     this.settingRenderer = new SettingRenderer(app, plugin, this.containerEl);
   }
 
-  async display(): Promise<void> {
+  display(): void {
+    void this.renderSettings();
+  }
+
+  private async renderSettings(): Promise<void> {
     await this.settingRenderer.render(await createSettingConfig(this.app));
   }
 }

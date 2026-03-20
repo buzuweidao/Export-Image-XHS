@@ -337,9 +337,10 @@ const ModalContent: FC<{
   }, [formData.split.mode]);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    isCopiable(formData.format).then(result => {
+    void isCopiable(formData.format).then(result => {
       setAllowCopy(Boolean(result));
+    }).catch(() => {
+      setAllowCopy(false);
     });
   }, [formData.format]);
 
@@ -468,7 +469,12 @@ const ModalContent: FC<{
       <div className='export-image-preview-actions'>
         {formData.split.mode === 'none' && pages === 1 && (
           <div>
-            <button onClick={handleCopy} disabled={processing || !allowCopy || isLoading}>
+            <button
+              onClick={() => {
+                void handleCopy();
+              }}
+              disabled={processing || !allowCopy || isLoading}
+            >
               {L.copy()}
             </button>
             {allowCopy || <p>{L.notAllowCopy({format: formData.format.replace(/\d$/, '').toUpperCase()})}</p>}
@@ -476,7 +482,9 @@ const ModalContent: FC<{
         )}
 
         <button
-          onClick={async () => (previewSession.exportAction === 'saveAll' ? handleSaveAll() : handleSave())}
+          onClick={() => {
+            void (previewSession.exportAction === 'saveAll' ? handleSaveAll() : handleSave());
+          }}
           disabled={processing || isLoading}
         >
           {Platform.isMobile ? L.saveVault() : L.save()}

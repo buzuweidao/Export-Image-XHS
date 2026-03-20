@@ -97,6 +97,9 @@ jszip/dist/jszip.min.js:
   https://github.com/nodeca/pako/blob/main/LICENSE
   */
 
+dom-to-image-more/dist/dom-to-image-more.min.js:
+  /*! dom-to-image-more 16-10-2024 */
+
 lodash/lodash.js:
   /**
    * @license

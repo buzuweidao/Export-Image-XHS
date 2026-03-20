@@ -41,8 +41,7 @@ const ImageSelect: FC<{
     previewRef.current?.empty();
     if (selected) {
       createHtml(selected.path, app).then(html =>
-        // eslint-disable-next-line unicorn/prefer-dom-node-append
-        previewRef.current?.appendChild(html),
+        previewRef.current?.append(html),
       ).catch(() => {
         // empty
       });
@@ -106,7 +105,9 @@ const ImageSelect: FC<{
         <button
           className='mod-cta'
           disabled={!selected}
-          onClick={submit}
+          onClick={() => {
+            void submit();
+          }}
           style={{marginRight: 40}}
         >
           {L.imageSelect.select()}

@@ -1,7 +1,6 @@
-import React, { type FC, useEffect, useRef, useCallback, useState } from 'react';
+import React, { type FC, useEffect, useRef, useState } from 'react';
 import get from 'lodash/get';
-import debounce from 'lodash/debounce';
-import { requestUrl, setIcon, type App, Modal } from 'obsidian';
+import { setIcon, type App, Modal } from 'obsidian';
 import { fileToBase64 } from '../../../utils';
 import L from '../../../L';
 import ImageSelectModal from '../imageSelectModal';
@@ -18,17 +17,10 @@ const Control: FC<{
   const [processedImageUrl, setProcessedImageUrl] = useState<string | undefined>(undefined);
   const inputReference = useRef<HTMLInputElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
-  const onChange = (value: any) => {
-    const newSetting = updateSettingsAtPath(setting, fieldSchema.path, value) as ISettings;
+  const onChange = (nextValue: unknown) => {
+    const newSetting = updateSettingsAtPath(setting, fieldSchema.path, nextValue) as ISettings;
     update(newSetting);
   };
-
-  const debouncedOnChange = useCallback(
-    debounce((value: string) => {
-      onChange(value);
-    }, 500),
-    [onChange]
-  );
 
   useEffect(() => {
     if (iconRef.current) {
@@ -45,7 +37,8 @@ const Control: FC<{
         setProcessedImageUrl(value);
       }
     };
-    processImage();
+
+    void processImage();
   }, [value, fieldSchema.type]);
 
   const upload = async () => {
@@ -170,14 +163,15 @@ const Control: FC<{
                 style={{ display: 'none' }}
                 type='file'
                 ref={inputReference}
-                onChange={upload}
+                onChange={() => {
+                  void upload();
+                }}
               />
             </button>
             <button onClick={select}>
               {L.setting.watermark.image.src.select()}
             </button>
             <button onClick={() => {
-              const currentValue = value || '';
               const modal = new Modal(app);
               modal.titleEl.setText(L.imageUrl());
 
@@ -194,10 +188,14 @@ const Control: FC<{
                 }
               });
 
+              const commitUrl = () => {
+                onChange(input.value);
+                modal.close();
+              };
+
               input.onkeydown = (e) => {
                 if (e.key === 'Enter') {
-                  onChange(input.value);
-                  modal.close();
+                  commitUrl();
                 } else if (e.key === 'Escape') {
                   modal.close();
                 }
@@ -215,8 +213,7 @@ const Control: FC<{
                 cls: 'mod-cta'
               });
               confirmButton.onclick = () => {
-                onChange(input.value);
-                modal.close();
+                commitUrl();
               };
 
               buttonDiv.createEl('button', { text: L.cancel() }).onclick = () => {

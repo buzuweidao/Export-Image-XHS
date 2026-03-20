@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Translation } from '../i18n-types';
 
 const es = {

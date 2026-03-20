@@ -2,13 +2,13 @@ import {
   type App,
   MarkdownRenderChild,
   MarkdownRenderer,
-  type TAbstractFile,
-  type TFile,
+  TAbstractFile,
+  TFile,
   normalizePath,
 } from 'obsidian';
 
 export function isMarkdownFile(file: TFile | TAbstractFile) {
-  return ['md', 'markdown'].includes((file as TFile)?.extension ?? '');
+  return file instanceof TFile && ['md', 'markdown'].includes(file.extension);
 }
 
 export async function fileToBase64(file: Blob): Promise<string> {
@@ -20,7 +20,7 @@ export async function fileToBase64(file: Blob): Promise<string> {
     });
 
     reader.onerror = error => {
-      reject(error);
+      reject(error instanceof Error ? error : new Error('Failed to read file.'));
     };
   });
 }
@@ -45,7 +45,7 @@ export async function getSizeOfImage(
     });
 
     image.onerror = error => {
-      reject(error);
+      reject(error instanceof Error ? error : new Error('Failed to load image.'));
       URL.revokeObjectURL(url);
       image.remove();
     };
@@ -59,13 +59,15 @@ export async function createHtml(
   app: App,
 ): Promise<HTMLDivElement> {
   const div = createDiv();
+  const renderChild = new MarkdownRenderChild(div);
   await MarkdownRenderer.render(
     app,
     `![](${normalizePath(path).replaceAll(' ', '%20')})`,
     div,
     '',
-    new MarkdownRenderChild(div),
+    renderChild,
   );
+  renderChild.unload();
   return div;
 }
 
@@ -73,10 +75,10 @@ export function getMetadata(file: TFile, app: App) {
   return app.metadataCache.getFileCache(file)?.frontmatter;
 }
 
-export async function delay(time: number) {
+export async function delay(time: number): Promise<void> {
   return new Promise(resolve => {
     setTimeout(() => {
-      resolve(true);
+      resolve();
     }, time);
   });
 }

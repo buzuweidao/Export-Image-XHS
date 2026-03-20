@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React from 'react';
 import {
   type App,
@@ -34,10 +32,12 @@ export default async function (
   // 如果是快速导出，创建隐藏的div元素进行处理
   if (skipConfig) {
     const div = createDiv();
-    div.style.width = (settings.width || 400) + 'px';
-    div.style.position = 'fixed';
-    div.style.top = '9999px';
-    div.style.left = '9999px';
+    div.setCssProps({
+      width: `${settings.width || 400}px`,
+      position: 'fixed',
+      top: '9999px',
+      left: '9999px',
+    });
     document.body.appendChild(div);
     const root = createRoot(div);
     root.render(
@@ -69,13 +69,14 @@ export default async function (
     // 先创建模态框并显示加载状态
     const modal = new Modal(app);
     modal.setTitle(L.imageExportPreview());
-    modal.modalEl.style.width = '85vw';
-    modal.modalEl.style.maxWidth = '1500px';
+    modal.modalEl.setCssProps({
+      width: '85vw',
+      'max-width': '1500px',
+    });
     modal.open();
     const root = createRoot(modal.contentEl);
     
-    /* @ts-ignore */
-    const metadataMap: Record<string, { type: MetadataType }> = app.metadataCache.getAllPropertyInfos();
+    const metadataMap = app.metadataCache.getAllPropertyInfos() as Record<string, { type: MetadataType }>;
     
     // 渲染组件，组件内部会处理loading状态
     root.render(
@@ -112,15 +113,15 @@ async function loadDocumentContent(
 ) {
   try {
     el.empty();
+    const renderChild = new MarkdownRenderChild(el);
     await MarkdownRenderer.render(
       app,
       preprocessMarkdown(markdown, frontmatter),
       el,
       file.path,
-      app.workspace.getActiveViewOfType(MarkdownView)
-      || app.workspace.activeLeaf?.view
-      || new MarkdownRenderChild(el),
+      app.workspace.getActiveViewOfType(MarkdownView) || renderChild,
     );
+    renderChild.unload();
 
     await delay(100);
     return el;

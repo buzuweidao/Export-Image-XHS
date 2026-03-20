@@ -25,6 +25,7 @@ const Preview: FC<{ setting: ISettings; el: HTMLDivElement }> = ({
 
 export const renderPreview = async (root: HTMLElement, app: App) => {
   const element = createDiv();
+  const renderChild = new MarkdownRenderChild(element);
   await MarkdownRenderer.render(
     app,
     [
@@ -36,8 +37,9 @@ export const renderPreview = async (root: HTMLElement, app: App) => {
     ].join('\n'),
     element,
     '/',
-    new MarkdownRenderChild(element),
+    renderChild,
   );
+  renderChild.unload();
   const r = createRoot(root);
   return (setting: ISettings) => {
     r.render(<Preview setting={setting} el={element}></Preview>);

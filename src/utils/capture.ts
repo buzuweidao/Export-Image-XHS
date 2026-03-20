@@ -4,7 +4,7 @@ import {
 import saveAs from 'file-saver';
 import JsPdf from 'jspdf';
 import JSZip from 'jszip';
-import domtoimage from '../dom-to-image-more';
+import domtoimage from 'dom-to-image-more';
 import L from '../L';
 import makeHTML from './makeHTML';
 import { fileToBase64, delay, getMime } from '.';
@@ -66,7 +66,9 @@ function cloneForCapture(el: HTMLElement) {
   });
   clone.querySelectorAll('[data-export-control="true"]').forEach(node => node.remove());
   clone.classList.add('export-image-hidden');
-  clone.style.pointerEvents = 'none';
+  clone.setCssProps({
+    'pointer-events': 'none',
+  });
   document.body.append(clone);
   return clone;
 }
@@ -253,14 +255,18 @@ export async function saveMultipleFiles(
       element: el,
       contentElement: el,
       setClip: (startY: number, height: number) => {
-        el.style.height = `${height}px`;
-        el.style.overflow = 'hidden';
-        el.style.transform = `translateY(-${startY}px)`;
+        el.setCssProps({
+          height: `${height}px`,
+          overflow: 'hidden',
+          transform: `translateY(-${startY}px)`,
+        });
       },
       resetClip: () => {
-        el.style.height = '';
-        el.style.overflow = '';
-        el.style.transform = '';
+        el.setCssProps({
+          height: '',
+          overflow: '',
+          transform: '',
+        });
       },
     };
 
@@ -307,9 +313,9 @@ export async function saveAll(
   try {
     const { split } = settings;
     const rootElement = target.contentElement;
-    const bodyElement = rootElement.querySelector('.export-image-preview-container') as HTMLElement | null;
-    const authorElement = rootElement.querySelector('.user-info-container') as HTMLElement | null;
-    const watermarkElement = rootElement.querySelector('.export-image-static-watermark') as HTMLElement | null;
+    const bodyElement = rootElement.querySelector<HTMLElement>('.export-image-preview-container');
+    const authorElement = rootElement.querySelector<HTMLElement>('.user-info-container');
+    const watermarkElement = rootElement.querySelector<HTMLElement>('.export-image-static-watermark');
     const bodyTarget = bodyElement || rootElement;
     const authorHeight = (
       settings.authorInfo.show
@@ -338,22 +344,26 @@ export async function saveAll(
       });
       const pageEl = document.createElement('div');
       pageEl.className = getPagedCaptureShellClassName(rootElement.className);
-      pageEl.style.width = `${target.element.clientWidth}px`;
-      pageEl.style.height = `${pageHeight}px`;
-      pageEl.style.position = layerPlan.shellPosition;
-      pageEl.style.overflow = 'hidden';
-      pageEl.style.boxSizing = 'border-box';
+      pageEl.setCssProps({
+        width: `${target.element.clientWidth}px`,
+        height: `${pageHeight}px`,
+        position: layerPlan.shellPosition,
+        overflow: 'hidden',
+        'box-sizing': 'border-box',
+        'pointer-events': 'none',
+      });
       pageEl.style.background = getComputedStyle(target.contentElement).background;
-      pageEl.style.pointerEvents = 'none';
 
       if (layerPlan.includeAuthor && authorElement) {
         pageEl.append(authorElement.cloneNode(true));
       }
 
       const viewportEl = document.createElement('div');
-      viewportEl.style.height = `${Math.max(1, viewportHeight)}px`;
-      viewportEl.style.overflow = 'hidden';
-      viewportEl.style.position = 'relative';
+      viewportEl.setCssProps({
+        height: `${Math.max(1, viewportHeight)}px`,
+        overflow: 'hidden',
+        position: 'relative',
+      });
 
       const bodyClone = bodyTarget.cloneNode(true) as HTMLElement;
       Object.assign(bodyClone.style, getPagedBodyCloneStyle(startY));

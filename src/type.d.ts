@@ -1,6 +1,5 @@
 declare type FileFormat = 'png0' | 'png1' | 'jpg' | 'pdf' | 'webp';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 declare type ISettings = {
   width?: number;
   bodyFontSize?: number;
@@ -56,7 +55,7 @@ declare type ISettings = {
   };
 };
 
-type ConditionType<T> = { flag: any; path: string } | ((data: T) => boolean);
+type ConditionType<T> = { flag: unknown; path: string } | ((data: T) => boolean);
 
 type ValueType = 'number' | 'string' | 'boolean' | 'file';
 

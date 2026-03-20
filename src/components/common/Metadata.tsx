@@ -1,23 +1,10 @@
 import React, { type FC, type JSX } from 'react';
 
-type PropType = { name: string } & (
-  | {
-    type: 'text' | 'date' | 'datetime';
-    value: string | undefined;
-  }
-  | {
-    type: 'number';
-    value: number | undefined;
-  }
-  | {
-    type: 'checkbox';
-    value: boolean;
-  }
-  | {
-    type: 'tags' | 'multitext' | 'aliases';
-    value: string[] | undefined;
-  }
-);
+type PropType = {
+  name: string;
+  type: MetadataType;
+  value: string | number | boolean | string[] | undefined;
+};
 
 const iconMap: Record<MetadataType, JSX.Element> = {
   text: (
@@ -208,22 +195,24 @@ const Metadata: FC<PropType> = ({ type, name, value }) => {
     }
 
     case 'number': {
+      const numericValue = typeof value === 'number' ? value : undefined;
       valueElement = (
         <input
           className='metadata-input metadata-input-number'
           type='number'
-          value={value}
+          value={numericValue}
         />
       );
       break;
     }
 
     case 'checkbox': {
+      const checkedValue = typeof value === 'boolean' ? value : undefined;
       valueElement = (
         <input
           className='metadata-input-checkbox'
           type='checkbox'
-          checked={value}
+          checked={checkedValue}
         />
       );
       break;

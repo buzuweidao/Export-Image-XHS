@@ -24,6 +24,14 @@ const alignMap = {
   right: 'flex-end',
 };
 
+const coerceMetadataValue = (value: unknown) => value as (
+  string
+  | number
+  | boolean
+  | string[]
+  | undefined
+);
+
 const resolveFrontmatterClassName = (frontmatter: FrontMatterCache | undefined) => {
   const cssClasses = frontmatter?.cssclasses;
   if (Array.isArray(cssClasses)) {
@@ -127,18 +135,26 @@ const Target = forwardRef<TargetRef, TargetProps>(({
         return;
       }
 
-      clipRef.current.style.height = `${height}px`;
-      clipRef.current.style.overflow = 'hidden';
-      rootRef.current.style.transform = `translateY(-${startY}px)`;
+      clipRef.current.setCssProps({
+        height: `${height}px`,
+        overflow: 'hidden',
+      });
+      rootRef.current.setCssProps({
+        transform: `translateY(-${startY}px)`,
+      });
     },
     resetClip() {
       if (!clipRef.current || !rootRef.current) {
         return;
       }
 
-      clipRef.current.style.height = '';
-      clipRef.current.style.overflow = '';
-      rootRef.current.style.transform = '';
+      clipRef.current.setCssProps({
+        height: '',
+        overflow: '',
+      });
+      rootRef.current.setCssProps({
+        transform: '',
+      });
     },
   }), []);
 
@@ -147,8 +163,8 @@ const Target = forwardRef<TargetRef, TargetProps>(({
       return [];
     }
 
-    const bodyTarget = rootRef.current.querySelector('.export-image-preview-container') as HTMLElement | null;
-    const authorElement = rootRef.current.querySelector('.user-info-container') as HTMLElement | null;
+    const bodyTarget = rootRef.current.querySelector<HTMLElement>('.export-image-preview-container');
+    const authorElement = rootRef.current.querySelector<HTMLElement>('.user-info-container');
     const authorHeight = (
       setting.authorInfo.show
       && setting.authorInfo.position === 'top'
@@ -270,8 +286,7 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                       <Metadata
                         name={name}
                         key={name}
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        value={frontmatter[name]}
+                        value={coerceMetadataValue(frontmatter[name])}
                         type={metadataMap[lowerCase(name)]?.type || 'text'}
                       ></Metadata>
                     ))}

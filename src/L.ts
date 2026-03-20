@@ -6,8 +6,12 @@ loadAllLocales();
 
 let locale: Locales = 'en';
 try {
-  // @ts-ignore
-  locale = (global?.i18next?.language as string || '');
+  const currentLanguage = (globalThis as typeof globalThis & {
+    i18next?: {
+      language?: string;
+    };
+  }).i18next?.language ?? '';
+  locale = currentLanguage as Locales;
   if (locale.startsWith('zh')) {
     locale = 'zh';
   }
@@ -19,7 +23,6 @@ try {
   /* empty */
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const L = i18n()[locale];
 
 export default L;

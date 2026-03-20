@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   type App,
   MarkdownRenderChild,
@@ -14,7 +12,6 @@ import { delay, getMetadata } from '.';
 
 let root: Root | undefined;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export default async function makeHTML(
   file: TFile,
   settings: ISettings,
@@ -29,18 +26,17 @@ export default async function makeHTML(
 
   const markdown = await app.vault.cachedRead(file);
   const element = document.createElement('div');
+  const renderChild = new MarkdownRenderChild(element);
   await MarkdownRenderer.render(
     app,
     markdown,
     element,
     file.path,
-    app.workspace.getActiveViewOfType(MarkdownView)
-    || app.workspace.activeLeaf?.view
-    || new MarkdownRenderChild(element),
+    app.workspace.getActiveViewOfType(MarkdownView) || renderChild,
   );
+  renderChild.unload();
 
-  /* @ts-ignore */
-  const metadataMap: Record<string, { type: MetadataType }> = app.metadataCache.getAllPropertyInfos();
+  const metadataMap = app.metadataCache.getAllPropertyInfos() as Record<string, { type: MetadataType }>;
 
   const frontmatter = getMetadata(file, app);
 

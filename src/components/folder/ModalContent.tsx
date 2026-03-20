@@ -212,7 +212,12 @@ const ModalContent: FC<{
               }}
             ></div>
           </div>
-          <button disabled={selectFiles.length === 0} onClick={exportAll}>
+          <button
+            disabled={selectFiles.length === 0}
+            onClick={() => {
+              void exportAll();
+            }}
+          >
             {L.exportAll()}
           </button>
         </div>

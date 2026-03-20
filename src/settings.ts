@@ -1,12 +1,10 @@
 import { isCreatable } from './imageFormatTester';
 import { DEFAULT_AUTHOR_FONT_FAMILY } from './utils/authorInfo';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const DEFAULT_SETTINGS: ISettings = {
   width: 621,
   bodyFontSize: 18,
   showFilename: false,
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   resolutionMode: '2x' as ResolutionMode,
   format: 'png0',
   showMetadata: false,
@@ -57,9 +55,7 @@ export const DEFAULT_SETTINGS: ISettings = {
 
 const formatList: FileFormat[] = ['png0', 'png1', 'jpg', 'webp', 'pdf'];
 export const formatAvailable: FileFormat[] = [];
-
-// eslint-disable-next-line unicorn/prefer-top-level-await
-(async () => {
+export const formatAvailableReady = (async () => {
   for (const type of formatList) {
     if (await isCreatable(type)) {
       formatAvailable.push(type);
