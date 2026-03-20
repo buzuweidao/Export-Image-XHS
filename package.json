@@ -1,6 +1,6 @@
 {
   "name": "export-image-xhs",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "description": "基于 obsidian-export-image 改造，适合中文长图与小红书排版分享的 Obsidian 插件。",
   "main": "main.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "url": "https://github.com/buzuweidao/Export-Image-XHS/issues"
   },
   "homepage": "https://github.com/buzuweidao/Export-Image-XHS#readme",
-  "author": "Yufeng Jiao",
+  "author": "buzuweidao <buzuweidao@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@types/dom-to-image": "^2.6.7",
