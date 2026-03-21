@@ -35,6 +35,23 @@ export class SettingRenderer {
     }, this.plugin.settings);
   }
 
+  private getStringSettingValue(path: string, fallback = ''): string {
+    const value = this.getSettingValue(path);
+    return this.toStringValue(value, fallback);
+  }
+
+  private toStringValue(value: unknown, fallback = ''): string {
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      return String(value);
+    }
+
+    return fallback;
+  }
+
   private async updateSetting(path: string, value: unknown) {
     this.plugin.settings = updateSettingsAtPath(this.plugin.settings, path, value) as ISettings;
     if (path === 'split.mode') {
@@ -87,7 +104,7 @@ export class SettingRenderer {
       switch (item.type) {
         case 'text':
           setting.addText(text => {
-            text.setValue(String(this.getSettingValue(item.id) ?? ''))
+            text.setValue(this.getStringSettingValue(item.id))
               .onChange(async value => {
                 await this.updateSetting(item.id, value);
               });
@@ -97,7 +114,7 @@ export class SettingRenderer {
         case 'number':
           setting.addText(text => {
             text.inputEl.type = 'number';
-            text.setValue(String(this.getSettingValue(item.id) ?? ''))
+            text.setValue(this.getStringSettingValue(item.id))
               .setPlaceholder(item.placeholder ?? '')
               .onChange(async value => {
                 await this.updateSetting(item.id, value ? Number(value) : undefined);
@@ -122,7 +139,7 @@ export class SettingRenderer {
                   item.options!.map(opt => [opt.value, opt.text])
                 )
               )
-                .setValue(String(this.getSettingValue(item.id) ?? ''))
+                .setValue(this.getStringSettingValue(item.id))
                 .onChange(async value => {
                   await this.updateSetting(item.id, value);
                 });
@@ -132,7 +149,12 @@ export class SettingRenderer {
 
         case 'color':
           setting.addColorPicker(picker => {
-            picker.setValue(String(this.getSettingValue(item.id) ?? item.defaultValue ?? ''))
+            picker.setValue(
+              this.toStringValue(
+                this.getSettingValue(item.id),
+                this.toStringValue(item.defaultValue),
+              ),
+            )
               .onChange(async value => {
                 await this.updateSetting(item.id, value);
               });

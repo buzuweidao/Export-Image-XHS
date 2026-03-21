@@ -45,8 +45,8 @@ export default class ExportImagePlugin extends Plugin {
             item
               .setTitle(L.exportFolder())
               .setIcon('image-down')
-              .onClick(async () => {
-                await exportFolder(this.app, this.settings, file);
+              .onClick(() => {
+                exportFolder(this.app, this.settings, file);
               });
           });
         }

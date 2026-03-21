@@ -25,7 +25,7 @@ const en = {
   guide: 'Drag to move, scroll or pinch to zoom in/out, double click to reset.',
   copyNotAllowed: 'PDF format is not supported for copy',
   exportAll: 'Export selected notes',
-  noMarkdownFile: 'No markdown files in the current directory',
+  noMarkdownFile: 'No Markdown files in the current directory',
   selectAll: 'Select all',
   setting: {
     title: 'Export image',
@@ -68,7 +68,7 @@ const en = {
     },
     resolutionMode: {
       label: 'Resolution mode image',
-      description: 'Set resolution mode, using 1x, 2x, 3x, 4x resolution images. When enabled, images will appear sharper, with a better experience on high PPI screens like smartphones. The downside is that the image file size will increase.',
+      description: 'Set the resolution mode to 1x, 2x, 3x, or 4x. Higher-resolution images look sharper on high-PPI screens such as smartphones, but the file size increases.',
     },
     metadata: {
       label: 'Show metadata',
@@ -77,10 +77,10 @@ const en = {
       title: 'Output file format',
       description:
         'Default PNG format images should satisfy the majority of needs, but to better support user scenarios: 1. Support for exporting images with both normal and transparent backgrounds; 2. Support for exporting JPG images to achieve smaller file sizes, though it may not be possible to copy directly to the clipboard; 3. Support for exporting to single-page PDF format, which differs from the usual PDF paper formats, please be careful not to misuse.',
-      png0: 'png - default',
-      png1: 'png - export transparent background image',
-      jpg: 'jpg - export jpg image',
-      pdf: 'pdf - export single page pdf',
+      png0: 'PNG - default',
+      png1: 'PNG - transparent background',
+      jpg: 'JPG - export JPG image',
+      pdf: 'PDF - single-page export',
     },
     quickExportSelection: {
       label: 'Quick export selection',
@@ -119,7 +119,7 @@ const en = {
       },
       image: {
         src: {
-          label: 'Image url',
+          label: 'Image URL',
           upload: 'Upload image',
           select: 'Select from current vault',
         },
