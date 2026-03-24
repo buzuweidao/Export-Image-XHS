@@ -11,6 +11,16 @@ If your plugin does not need CSS, delete this file.
   pointer-events: none;
 }
 
+.export-image-root img {
+  max-width: 100%;
+  height: auto;
+}
+
+.export-image-root .image-embed,
+.export-image-root .internal-embed.image-embed {
+  max-width: 100%;
+}
+
 .export-image-root .obsidian-banner-wrapper {
   margin-top: 0 !important;
   padding-top: 0;

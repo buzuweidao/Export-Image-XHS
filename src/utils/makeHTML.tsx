@@ -9,6 +9,7 @@ import React from 'react';
 import { type Root, createRoot } from 'react-dom/client';
 import Target from 'src/components/common/Target';
 import { delay, getMetadata } from '.';
+import { waitForEmbeds, waitForImages, convertImagesToBase64 } from './processImages';
 
 let root: Root | undefined;
 
@@ -26,6 +27,17 @@ export default async function makeHTML(
 
   const markdown = await app.vault.cachedRead(file);
   const element = document.createElement('div');
+
+  // 临时挂载到 DOM，Obsidian 嵌入后处理器需要元素在 DOM 中
+  element.setCssProps({
+    position: 'fixed',
+    top: '-99999px',
+    left: '-99999px',
+    visibility: 'hidden',
+    'pointer-events': 'none',
+  });
+  document.body.appendChild(element);
+
   const renderChild = new MarkdownRenderChild(element);
   await MarkdownRenderer.render(
     app,
@@ -34,7 +46,21 @@ export default async function makeHTML(
     file.path,
     app.workspace.getActiveViewOfType(MarkdownView) || renderChild,
   );
+
+  await waitForEmbeds(element);
+  await waitForImages(element);
+  await convertImagesToBase64(element, app, file.path);
   renderChild.unload();
+
+  // 清理临时挂载
+  element.remove();
+  element.setCssProps({
+    position: '',
+    top: '',
+    left: '',
+    visibility: '',
+    'pointer-events': '',
+  });
 
   const metadataMap = app.metadataCache.getAllPropertyInfos() as Record<string, { type: MetadataType }>;
 

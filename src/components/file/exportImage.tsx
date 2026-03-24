@@ -16,6 +16,7 @@ import { preprocessMarkdown } from 'src/utils/preprocessMarkdown';
 import Target from '../common/Target';
 import { delay } from 'src/utils';
 import { copy } from 'src/utils/capture';
+import { waitForEmbeds, waitForImages, convertImagesToBase64 } from 'src/utils/processImages';
 
 export default async function (
   app: App,
@@ -113,6 +114,17 @@ async function loadDocumentContent(
 ) {
   try {
     el.empty();
+
+    // 临时将 el 挂载到 DOM，Obsidian 的嵌入后处理器需要元素在 DOM 中
+    el.setCssProps({
+      position: 'fixed',
+      top: '-99999px',
+      left: '-99999px',
+      visibility: 'hidden',
+      'pointer-events': 'none',
+    });
+    document.body.appendChild(el);
+
     const renderChild = new MarkdownRenderChild(el);
     await MarkdownRenderer.render(
       app,
@@ -121,12 +133,39 @@ async function loadDocumentContent(
       file.path,
       app.workspace.getActiveViewOfType(MarkdownView) || renderChild,
     );
+
+    // 等待 Obsidian 的嵌入后处理器解析图片（不要提前 unload renderChild）
+    await waitForEmbeds(el);
+    await waitForImages(el);
+    await convertImagesToBase64(el, app, file.path);
+
     renderChild.unload();
+
+    // 从 DOM 中移除并清理临时样式
+    el.remove();
+    el.setCssProps({
+      position: '',
+      top: '',
+      left: '',
+      visibility: '',
+      'pointer-events': '',
+    });
 
     await delay(100);
     return el;
   } catch (error) {
     console.error("Error loading document content:", error);
+    // 确保清理
+    if (el.parentNode) {
+      el.remove();
+    }
+    el.setCssProps({
+      position: '',
+      top: '',
+      left: '',
+      visibility: '',
+      'pointer-events': '',
+    });
     return el;
   }
 }

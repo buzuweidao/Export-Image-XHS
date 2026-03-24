@@ -19,6 +19,47 @@ import { buildCaptureSplitModel } from './captureSplitModel.js';
 import { getPagedCaptureShellClassName } from './pagedCaptureShellModel.js';
 import { buildPagedCaptureLayerPlan } from './pagedCaptureLayerModel.js';
 
+/**
+ * 将元素中的 app:// 图片转为 base64 data URL。
+ * 优先用 fetch 读取原始字节（无损），失败时回退 canvas。
+ */
+async function convertLoadedImages(container: HTMLElement): Promise<void> {
+  const images = Array.from(container.querySelectorAll('img'));
+  const tasks = images.map(async img => {
+    if (!img.src || img.src.startsWith('data:')) {
+      return;
+    }
+
+    // 方式1：fetch 原始文件（无损）
+    try {
+      const response = await fetch(img.src);
+      const blob = await response.blob();
+      const dataUrl = await fileToBase64(blob);
+      img.src = dataUrl;
+      return;
+    } catch {
+      // fetch 不支持此协议，回退 canvas
+    }
+
+    // 方式2：canvas 绘制（可能有轻微质量损失）
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          img.src = canvas.toDataURL('image/png');
+        }
+      } catch {
+        // 静默降级
+      }
+    }
+  });
+  await Promise.allSettled(tasks);
+}
+
 async function getBlob(el: HTMLElement, resolutionMode: ResolutionMode, type: string): Promise<Blob> {
   const scale = resolutionMode === '2x' ? 2 : resolutionMode === '3x' ? 3 : resolutionMode === '4x' ? 4 : 1;
   return domtoimage.toBlob(el, {
@@ -81,6 +122,7 @@ export async function save(
   format: FileFormat,
   isMobile: boolean,
 ) {
+  await convertLoadedImages(el);
   const blob: Blob = await getBlob(
     el,
     resolutionMode,
@@ -132,6 +174,7 @@ export async function copy(
     return;
   }
 
+  await convertLoadedImages(el);
   const blob = await getBlob(
     el,
     resolutionMode,
@@ -313,6 +356,10 @@ export async function saveAll(
   try {
     const { split } = settings;
     const rootElement = target.contentElement;
+
+    // 在克隆/捕获之前，将已加载的 app:// 图片转为 base64
+    await convertLoadedImages(rootElement);
+
     const bodyElement = rootElement.querySelector<HTMLElement>('.export-image-preview-container');
     const authorElement = rootElement.querySelector<HTMLElement>('.user-info-container');
     const watermarkElement = rootElement.querySelector<HTMLElement>('.export-image-static-watermark');
