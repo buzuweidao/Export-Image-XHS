@@ -30,15 +30,15 @@ async function convertLoadedImages(container: HTMLElement): Promise<void> {
       return;
     }
 
-    // 方式1：fetch 原始文件（无损）
+    // 方式1：requestUrl 读取原始文件（无损）
     try {
-      const response = await fetch(img.src);
-      const blob = await response.blob();
+      const response = await requestUrl({ url: img.src });
+      const blob = new Blob([response.arrayBuffer], { type: response.headers['content-type'] || 'image/png' });
       const dataUrl = await fileToBase64(blob);
       img.src = dataUrl;
       return;
     } catch {
-      // fetch 不支持此协议，回退 canvas
+      // requestUrl 不支持此协议，回退 canvas
     }
 
     // 方式2：canvas 绘制（可能有轻微质量损失）
@@ -69,7 +69,7 @@ async function getBlob(el: HTMLElement, resolutionMode: ResolutionMode, type: st
     scale: scale,
     requestUrl,
     type,
-  }) as Promise<Blob>;
+  });
 }
 
 async function makePdf(blob: Blob, el: HTMLElement) {
@@ -288,7 +288,6 @@ export async function saveMultipleFiles(
 ) {
   let finished = 0;
   const { format, resolutionMode } = settings;
-  const blobs: { blob: Blob; filename: string }[] = [];
 
   for (const file of files) {
     const el = await makeHTML(file, settings, app, containner) as HTMLElement;

@@ -79,7 +79,7 @@ export function calculateSplitPositions(
   elements?: ElementMeasure[],
 ): SplitPosition[] {
   const {
-    mode, height, firstPageHeight, overlap, totalHeight, width,
+    mode, height, firstPageHeight, overlap, totalHeight,
   } = options;
   const positions: SplitPosition[] = [];
   if (mode === 'hr' && elements) {

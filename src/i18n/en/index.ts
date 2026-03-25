@@ -67,7 +67,7 @@ const en = {
         'Set whether to include the file name as the title. When Obsidian displays the document, it will display the file name as an h1 title. Sometimes this is not what you want, and you will get duplicate titles.',
     },
     resolutionMode: {
-      label: 'Resolution mode image',
+      label: 'Resolution mode',
       description: 'Set the resolution mode to 1x, 2x, 3x, or 4x. Higher-resolution images look sharper on high-PPI screens such as smartphones, but the file size increases.',
     },
     metadata: {

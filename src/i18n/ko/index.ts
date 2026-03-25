@@ -1,4 +1,3 @@
-import { split } from 'lodash';
 import type { BaseTranslation } from '../i18n-types';
 
 const ko = {
