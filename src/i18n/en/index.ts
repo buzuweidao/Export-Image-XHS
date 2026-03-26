@@ -98,7 +98,7 @@ const en = {
         label: 'Verified badge',
         none: 'None',
         x: 'X (Twitter) blue badge',
-        weibo: 'Weibo orange V',
+        weibo: 'Weibo orange badge',
       },
       weiboLocation: 'Posted from',
       position: 'Display position',

@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js
-        uses: actions/setup-node@v4.1.0
+        uses: actions/setup-node@v4
         with:
           node-version: "22.x"
 
@@ -30,4 +30,8 @@ jobs:
 
           gh release create "$tag" \
             --title="$tag" \
+            --generate-notes \
+            main.js manifest.json styles.css ||
+          gh release upload "$tag" \
+            --clobber \
             main.js manifest.json styles.css
