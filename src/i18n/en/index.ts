@@ -68,7 +68,7 @@ const en = {
     },
     resolutionMode: {
       label: 'Resolution mode',
-      description: 'Set the resolution mode to 1x, 2x, 3x, or 4x. Higher-resolution images look sharper on high-PPI screens such as smartphones, but the file size increases.',
+      description: 'Set the resolution mode to 1x, 2x, 3x, or 4x. Higher-resolution images look sharper on high-density screens such as smartphones, but the file size increases.',
     },
     metadata: {
       label: 'Show metadata',
