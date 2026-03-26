@@ -88,6 +88,12 @@ const ko = {
         description: '정사각형 이미지 사용을 권장합니다',
       },
       name: '작성자 이름',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: '표시 위치',
       remark: '추가 텍스트',
       align: '정렬',

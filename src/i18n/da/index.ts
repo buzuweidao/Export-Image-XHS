@@ -87,6 +87,12 @@ const da = {
         description: 'Anbefales at bruge kvadratiske billeder',
       },
       name: 'Forfatternavn',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Hvor skal det vises',
       remark: 'Ekstra tekst',
       align: 'Justér',

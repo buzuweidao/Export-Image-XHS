@@ -94,6 +94,12 @@ const en = {
         description: 'Recommend using square pictures',
       },
       name: 'Author name',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Display position',
       remark: 'Extra text',
       align: 'Alignment',

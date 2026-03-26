@@ -87,6 +87,12 @@ const pl = {
         description: 'Zaleca się używanie zdjęć kwadratowych',
       },
       name: 'Nazwa autora',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Gdzie wyświetlić',
       remark: 'Dodatkowy tekst',
       align: 'Wyrównaj',

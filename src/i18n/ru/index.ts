@@ -89,6 +89,12 @@ const ru = {
         description: 'Рекомендуется использовать квадратные изображения',
       },
       name: 'Имя автора',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Где отображать',
       remark: 'Дополнительный текст',
       align: 'Выровнять',

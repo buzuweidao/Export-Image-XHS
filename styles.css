@@ -147,6 +147,10 @@ If your plugin does not need CSS, delete this file.
   line-height: 1.2;
   white-space: nowrap;
 }
+.export-image-root .user-info-badge {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
 
 .export-image-root .export-image-markdown > :first-child {
   margin-top: 0 !important;

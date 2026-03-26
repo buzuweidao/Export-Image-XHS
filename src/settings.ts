@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: ISettings = {
     remarkFontSize: 25,
     nameFontFamily: DEFAULT_AUTHOR_FONT_FAMILY,
     remarkFontFamily: DEFAULT_AUTHOR_FONT_FAMILY,
+    badgeStyle: 'none',
     separator: 'none',
     align: 'left',
     position: 'top',

@@ -90,6 +90,12 @@ const it = {
         description: 'Si consiglia di utilizzare un\'immagine quadrata',
       },
       name: 'Nome autore',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Posizione di visualizzazione',
       remark: 'Testo aggiuntivo',
       align: 'Allineamento',

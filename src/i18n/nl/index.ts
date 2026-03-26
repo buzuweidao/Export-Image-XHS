@@ -88,6 +88,12 @@ const nl = {
         description: 'Het gebruik van vierkante afbeeldingen wordt aanbevolen',
       },
       name: 'Auteursnaam',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Waar te tonen',
       remark: 'Extra tekst',
       align: 'Uitlijnen',

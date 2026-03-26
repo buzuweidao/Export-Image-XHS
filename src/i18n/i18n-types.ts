@@ -118,6 +118,12 @@ type RootTranslation = {
 				description: string
 			}
 			name: string
+			badgeStyle: {
+				label: string
+				none: string
+				x: string
+				weibo: string
+			}
 			position: string
 			remark: string
 			align: string
@@ -261,6 +267,12 @@ export type TranslationFunctions = {
 				description: () => LocalizedString
 			}
 			name: () => LocalizedString
+			badgeStyle: {
+				label: () => LocalizedString
+				none: () => LocalizedString
+				x: () => LocalizedString
+				weibo: () => LocalizedString
+			}
 			position: () => LocalizedString
 			remark: () => LocalizedString
 			align: () => LocalizedString

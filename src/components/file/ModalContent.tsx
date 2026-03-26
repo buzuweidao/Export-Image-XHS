@@ -122,6 +122,17 @@ const formSchema: FormSchema<ISettings> = [
     when: {flag: true, path: 'authorInfo.show'},
   },
   {
+    label: L.setting.userInfo.badgeStyle.label(),
+    path: 'authorInfo.badgeStyle',
+    type: 'select',
+    options: [
+      {text: L.setting.userInfo.badgeStyle.none(), value: 'none'},
+      {text: L.setting.userInfo.badgeStyle.x(), value: 'x'},
+      {text: L.setting.userInfo.badgeStyle.weibo(), value: 'weibo'},
+    ],
+    when: {flag: true, path: 'authorInfo.show'},
+  },
+  {
     label: '头像大小',
     path: 'authorInfo.avatarSize',
     type: 'number',

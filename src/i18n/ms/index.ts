@@ -86,6 +86,12 @@ const ms = {
         description: 'Menggunakan gambar persegi disarankan',
       },
       name: 'Nama Penulis',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Di mana untuk dipaparkan',
       remark: 'Teks tambahan',
       align: 'Menyelaraskan',

@@ -89,6 +89,12 @@ const ro = {
         description: 'Se recomandă utilizarea imaginilor pătrate',
       },
       name: 'Numele autorului',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Unde să afișeze',
       remark: 'Text suplimentar',
       align: 'Aliniați',

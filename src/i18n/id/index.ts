@@ -86,6 +86,12 @@ const id = {
         description: 'Disarankan menggunakan gambar persegi',
       },
       name: 'Nama penulis',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Dimana ditampilkan',
       remark: 'Teks tambahan',
       align: 'Menyelaraskan',

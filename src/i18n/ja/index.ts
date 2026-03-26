@@ -86,6 +86,12 @@ const ja = {
         description: '正方形の画像の使用を推奨',
       },
       name: '著者名',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: '表示位置',
       remark: '追加テキスト',
       align: '配置',

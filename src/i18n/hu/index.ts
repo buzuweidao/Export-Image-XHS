@@ -86,6 +86,12 @@ const hu = {
         description: 'Négyzetes képek használata ajánlott',
       },
       name: 'Szerző neve',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Megjelenítés helye',
       remark: 'További szöveg',
       align: 'Igazítás',

@@ -86,6 +86,12 @@ const fi = {
         description: 'Suositellaan neliömäisten kuvien käyttöä',
       },
       name: 'Tekijän nimi',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Missä näytetään',
       remark: 'Lisäteksti',
       align: 'Tasaa',

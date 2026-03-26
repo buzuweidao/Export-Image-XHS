@@ -95,6 +95,12 @@ const fr = {
         description: 'L\'utilisation d\'images carrées est recommandée',
       },
       name: 'Nom de l\'auteur',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Position d\'affichage',
       remark: 'Texte supplémentaire',
       align: 'Alignement',

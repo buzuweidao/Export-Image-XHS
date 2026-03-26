@@ -87,6 +87,12 @@ const cs = {
         description: 'Doporučuje se použití čtvercových obrázků',
       },
       name: 'Jméno autora',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Kde zobrazit',
       remark: 'Dodatečný text',
       align: 'Zarovnat',

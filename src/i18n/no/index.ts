@@ -87,6 +87,12 @@ const no = {
         description: 'Det anbefales å bruke kvadratiske bilder',
       },
       name: 'Forfatternavn',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Hvor det skal vises',
       remark: 'Ekstra tekst',
       align: 'Justering',

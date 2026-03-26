@@ -161,6 +161,17 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       show: (settings) => settings.authorInfo.show,
     },
     {
+      id: 'authorInfo.badgeStyle',
+      label: L.setting.userInfo.badgeStyle.label(),
+      type: 'dropdown',
+      options: [
+        { value: 'none', text: L.setting.userInfo.badgeStyle.none() },
+        { value: 'x', text: L.setting.userInfo.badgeStyle.x() },
+        { value: 'weibo', text: L.setting.userInfo.badgeStyle.weibo() },
+      ],
+      show: (settings) => settings.authorInfo.show,
+    },
+    {
       id: 'authorInfo.avatarSize',
       label: '头像大小',
       type: 'number',

@@ -26,6 +26,7 @@ declare type ISettings = {
     remarkFontSize?: number;
     nameFontFamily?: string;
     remarkFontFamily?: string;
+    badgeStyle?: 'none' | 'x' | 'weibo';
     separator?: 'none' | 'line' | 'background';
     align?: 'left' | 'center' | 'right';
     position?: 'top' | 'bottom';

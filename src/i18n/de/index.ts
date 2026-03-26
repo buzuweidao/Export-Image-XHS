@@ -95,6 +95,12 @@ const de = {
         description: 'Es wird empfohlen, quadratische Bilder zu verwenden',
       },
       name: 'Autorenname',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Anzeigeposition',
       remark: 'Zusätzlicher Text',
       align: 'Ausrichtung',

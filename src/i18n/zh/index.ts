@@ -93,6 +93,12 @@ const zh = {
         description: '建议使用正方形图片',
       },
       name: '作者名',
+      badgeStyle: {
+        label: '认证徽章',
+        none: '无',
+        x: 'X (Twitter) 蓝标',
+        weibo: '微博橙V',
+      },
       position: '显示位置',
       remark: '额外文案',
       align: '对齐方式',

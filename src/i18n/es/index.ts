@@ -90,6 +90,12 @@ const es = {
         description: 'Se recomienda usar imágenes cuadradas',
       },
       name: 'Nombre del autor',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Posición de visualización',
       remark: 'Texto extra',
       align: 'Alineación',

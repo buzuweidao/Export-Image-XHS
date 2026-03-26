@@ -88,6 +88,12 @@ const pt = {
         description: 'Recomenda-se usar imagens quadradas',
       },
       name: 'Nome do autor',
+      badgeStyle: {
+        label: 'Verified badge',
+        none: 'None',
+        x: 'X (Twitter) blue badge',
+        weibo: 'Weibo orange V',
+      },
       position: 'Onde exibir',
       remark: 'Texto extra',
       align: 'Alinhar',
