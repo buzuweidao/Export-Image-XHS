@@ -92,6 +92,7 @@ const fi = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Missä näytetään',
       remark: 'Lisäteksti',
       align: 'Tasaa',

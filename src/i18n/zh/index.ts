@@ -99,6 +99,7 @@ const zh = {
         x: 'X (Twitter) 蓝标',
         weibo: '微博橙V',
       },
+      weiboLocation: '发布于',
       position: '显示位置',
       remark: '额外文案',
       align: '对齐方式',

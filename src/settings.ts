@@ -25,6 +25,7 @@ export const DEFAULT_SETTINGS: ISettings = {
     nameFontFamily: DEFAULT_AUTHOR_FONT_FAMILY,
     remarkFontFamily: DEFAULT_AUTHOR_FONT_FAMILY,
     badgeStyle: 'none',
+    weiboLocation: '',
     separator: 'none',
     align: 'left',
     position: 'top',

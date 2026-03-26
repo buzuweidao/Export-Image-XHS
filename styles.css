@@ -138,7 +138,7 @@ If your plugin does not need CSS, delete this file.
 }
 .export-image-root .user-info-name {
   font-size: 16px;
-  line-height: 1.2;
+  line-height: 1;
   padding-bottom: 0;
 }
 .export-image-root .user-info-remark {
@@ -149,7 +149,7 @@ If your plugin does not need CSS, delete this file.
 }
 .export-image-root .user-info-badge {
   flex-shrink: 0;
-  vertical-align: middle;
+  display: block;
 }
 
 .export-image-root .export-image-markdown > :first-child {

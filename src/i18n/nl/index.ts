@@ -94,6 +94,7 @@ const nl = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Waar te tonen',
       remark: 'Extra tekst',
       align: 'Uitlijnen',

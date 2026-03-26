@@ -92,6 +92,7 @@ const hu = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Megjelenítés helye',
       remark: 'További szöveg',
       align: 'Igazítás',

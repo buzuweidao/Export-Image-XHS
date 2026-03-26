@@ -101,6 +101,7 @@ const de = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Anzeigeposition',
       remark: 'Zusätzlicher Text',
       align: 'Ausrichtung',

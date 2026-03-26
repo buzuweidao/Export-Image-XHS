@@ -133,6 +133,12 @@ const formSchema: FormSchema<ISettings> = [
     when: {flag: true, path: 'authorInfo.show'},
   },
   {
+    label: L.setting.userInfo.weiboLocation(),
+    path: 'authorInfo.weiboLocation',
+    type: 'string',
+    when: (settings: ISettings) => settings.authorInfo.show && settings.authorInfo.badgeStyle === 'weibo',
+  },
+  {
     label: '头像大小',
     path: 'authorInfo.avatarSize',
     type: 'number',

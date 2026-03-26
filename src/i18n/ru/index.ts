@@ -95,6 +95,7 @@ const ru = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Где отображать',
       remark: 'Дополнительный текст',
       align: 'Выровнять',

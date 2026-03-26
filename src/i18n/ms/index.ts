@@ -92,6 +92,7 @@ const ms = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Di mana untuk dipaparkan',
       remark: 'Teks tambahan',
       align: 'Menyelaraskan',

@@ -27,6 +27,7 @@ declare type ISettings = {
     nameFontFamily?: string;
     remarkFontFamily?: string;
     badgeStyle?: 'none' | 'x' | 'weibo';
+    weiboLocation?: string;
     separator?: 'none' | 'line' | 'background';
     align?: 'left' | 'center' | 'right';
     position?: 'top' | 'bottom';

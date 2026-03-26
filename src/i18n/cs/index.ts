@@ -93,6 +93,7 @@ const cs = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Kde zobrazit',
       remark: 'Dodatečný text',
       align: 'Zarovnat',

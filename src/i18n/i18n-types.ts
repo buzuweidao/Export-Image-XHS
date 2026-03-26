@@ -124,6 +124,7 @@ type RootTranslation = {
 				x: string
 				weibo: string
 			}
+			weiboLocation: string
 			position: string
 			remark: string
 			align: string
@@ -273,6 +274,7 @@ export type TranslationFunctions = {
 				x: () => LocalizedString
 				weibo: () => LocalizedString
 			}
+			weiboLocation: () => LocalizedString
 			position: () => LocalizedString
 			remark: () => LocalizedString
 			align: () => LocalizedString

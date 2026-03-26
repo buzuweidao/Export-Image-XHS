@@ -101,6 +101,7 @@ const fr = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Position d\'affichage',
       remark: 'Texte supplémentaire',
       align: 'Alignement',

@@ -94,6 +94,7 @@ const ko = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: '표시 위치',
       remark: '추가 텍스트',
       align: '정렬',

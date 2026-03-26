@@ -92,6 +92,7 @@ const ja = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: '表示位置',
       remark: '追加テキスト',
       align: '配置',

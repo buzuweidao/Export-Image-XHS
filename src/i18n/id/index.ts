@@ -92,6 +92,7 @@ const id = {
         x: 'X (Twitter) blue badge',
         weibo: 'Weibo orange V',
       },
+      weiboLocation: 'Posted from',
       position: 'Dimana ditampilkan',
       remark: 'Teks tambahan',
       align: 'Menyelaraskan',

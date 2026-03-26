@@ -172,6 +172,13 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       show: (settings) => settings.authorInfo.show,
     },
     {
+      id: 'authorInfo.weiboLocation',
+      label: L.setting.userInfo.weiboLocation(),
+      type: 'text',
+      placeholder: '上海',
+      show: (settings) => settings.authorInfo.show && settings.authorInfo.badgeStyle === 'weibo',
+    },
+    {
       id: 'authorInfo.avatarSize',
       label: '头像大小',
       type: 'number',
