@@ -30,9 +30,6 @@ export function getPagedBodyCloneStyle(startY) {
     height: 'auto',
     maxHeight: 'none',
     minHeight: '0',
-    overflow: 'visible',
-    overflowX: 'visible',
-    overflowY: 'visible',
     transform: `translateY(-${startY}px)`,
   };
 }
