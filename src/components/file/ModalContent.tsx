@@ -277,10 +277,78 @@ const ModalContent: FC<{
   const root = useRef<TargetRef>(null);
   const previewSplitHeight = getSplitHeight(formData.split.mode, formData.width, formData.split.height);
   const previousSplitModeRef = useRef<SplitMode | undefined>(settings.split.mode);
+  const previousBadgeStyleRef = useRef<string | undefined>(settings.authorInfo?.badgeStyle);
 
   useEffect(() => {
     setFormData(settings);
   }, [settings]);
+
+  // 认证徽章样式联动：切换时自动调整头像大小、字号、额外文案时间格式
+  useEffect(() => {
+    const currentBadge = formData.authorInfo?.badgeStyle;
+    const previousBadge = previousBadgeStyleRef.current;
+    previousBadgeStyleRef.current = currentBadge;
+
+    if (currentBadge === previousBadge) return;
+
+    const now = new Date();
+    // X/微博都用系统无衬线字体（SF Pro / PingFang SC），匹配原生 App
+    const systemFont = '"SF Pro Display", "PingFang SC", sans-serif';
+    const defaultFont = '"Anonymous Pro for Powerline", monospace';
+
+    if (currentBadge === 'x') {
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const day = now.getDate();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${year}年${month}月${day}日 ${hours}:${minutes}`;
+      setFormData(prev => ({
+        ...prev,
+        authorInfo: {
+          ...prev.authorInfo,
+          avatarSize: 66,
+          nameFontSize: 20,
+          remarkFontSize: 18,
+          nameFontFamily: systemFont,
+          remarkFontFamily: systemFont,
+          remark: timeStr,
+        },
+      }));
+    } else if (currentBadge === 'weibo') {
+      const year = String(now.getFullYear()).slice(2);
+      const month = now.getMonth() + 1;
+      const day = now.getDate();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${year}-${month}-${day} ${hours}:${minutes}`;
+      setFormData(prev => ({
+        ...prev,
+        authorInfo: {
+          ...prev.authorInfo,
+          avatarSize: 66,
+          nameFontSize: 20,
+          remarkFontSize: 17,
+          nameFontFamily: systemFont,
+          remarkFontFamily: systemFont,
+          remark: timeStr,
+        },
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        authorInfo: {
+          ...prev.authorInfo,
+          avatarSize: 88,
+          nameFontSize: 25,
+          remarkFontSize: 25,
+          nameFontFamily: defaultFont,
+          remarkFontFamily: defaultFont,
+          remark: '',
+        },
+      }));
+    }
+  }, [formData.authorInfo?.badgeStyle]);
 
   useEffect(() => {
     const previousMode = previousSplitModeRef.current;

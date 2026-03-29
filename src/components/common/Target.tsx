@@ -13,9 +13,9 @@ import { normalizeAuthorFontFamily } from 'src/utils/authorInfo';
 import { getBodyTypographyStyle } from 'src/utils/bodyTypography';
 import { getCaptureContentHeight } from 'src/utils/pagedCaptureModel';
 import { buildCaptureSplitModel } from 'src/utils/captureSplitModel';
+import { WEIBO_BADGE_URL } from 'src/utils/badgeAssets';
 import { getElementMeasures } from 'src/utils/split';
 import { getAuthorAlign, getAuthorPadding, getBodyPadding } from 'src/utils/pageLayout';
-import { WEIBO_BADGE_URL } from 'src/utils/badgeAssets';
 import Metadata from './Metadata';
 import StaticWatermark from './StaticWatermark';
 
@@ -317,6 +317,9 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                   padding: `${authorPadding.top}px ${authorPadding.right}px ${authorPadding.bottom}px ${authorPadding.left}px`,
                   justifyContent: authorJustify,
                   alignItems: setting.authorInfo.badgeStyle === 'weibo' ? 'flex-start' : undefined,
+                  gap: setting.authorInfo.badgeStyle === 'x' ? '12px'
+                    : setting.authorInfo.badgeStyle === 'weibo' ? '12px'
+                    : undefined,
                   background:
                     setting.format === 'png1'
                       ? 'unset'
@@ -325,20 +328,36 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                 }}
               >
                 {setting.authorInfo.avatar && (
-                  <div
-                    className='user-info-avatar'
-                    style={{
-                      backgroundImage: `url(${setting.authorInfo.avatar})`,
-                      width: setting.authorInfo.avatarSize,
-                      height: setting.authorInfo.avatarSize,
-                    }}
-                  ></div>
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <div
+                      className='user-info-avatar'
+                      style={{
+                        backgroundImage: `url(${setting.authorInfo.avatar})`,
+                        width: setting.authorInfo.avatarSize,
+                        height: setting.authorInfo.avatarSize,
+                      }}
+                    ></div>
+                    {setting.authorInfo.badgeStyle === 'weibo' && (
+                      <svg
+                        className='user-info-avatar-v-badge'
+                        viewBox="0 0 100 100"
+                        style={{
+                          width: `${Math.round((setting.authorInfo.avatarSize || 66) * 0.31)}px`,
+                          height: `${Math.round((setting.authorInfo.avatarSize || 66) * 0.31)}px`,
+                        }}
+                      >
+                        <circle cx="50" cy="50" r="50" fill="#fff"/>
+                        <circle cx="50" cy="50" r="40.476" fill="#FF6C00"/>
+                        <path fill="#fff" fillRule="evenodd" d="M37.025 33.134 50 59.612l13.153-26.478h11.3L55.404 71.429H44.589L25.542 33.134z" clipRule="evenodd"/>
+                      </svg>
+                    )}
+                  </div>
                 )}
                 {setting.authorInfo.name && (
                   <div
                     className='user-info-text'
                     style={setting.authorInfo.badgeStyle === 'weibo'
-                      ? { padding: '6px 0 3px', gap: '3px', alignItems: 'flex-start' }
+                      ? { padding: '6px 0 3px', gap: '6px', alignItems: 'flex-start' }
                       : undefined
                     }
                   >
@@ -347,7 +366,7 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: setting.authorInfo.badgeStyle === 'x' ? '2px' : '4px',
+                        gap: setting.authorInfo.badgeStyle === 'x' ? '2px' : '5px',
                       }}
                     >
                       <div
@@ -355,6 +374,7 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                         style={{
                           fontSize: setting.authorInfo.nameFontSize,
                           fontFamily: normalizeAuthorFontFamily(setting.authorInfo.nameFontFamily),
+                          fontWeight: setting.authorInfo.badgeStyle !== 'none' ? 700 : undefined,
                           color: setting.authorInfo.badgeStyle === 'weibo' ? '#FF8200' : undefined,
                         }}
                       >
@@ -378,7 +398,7 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                           className="user-info-badge"
                           src={WEIBO_BADGE_URL}
                           style={{
-                            height: `${(setting.authorInfo.nameFontSize || 25) * 0.9}px`,
+                            height: `${(setting.authorInfo.nameFontSize || 20) * 14 / 15}px`,
                             width: 'auto',
                           }}
                         />
@@ -390,6 +410,11 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                         style={{
                           fontSize: setting.authorInfo.remarkFontSize,
                           fontFamily: normalizeAuthorFontFamily(setting.authorInfo.remarkFontFamily),
+                          color: setting.authorInfo.badgeStyle === 'weibo'
+                            ? 'rgb(147, 147, 147)'
+                            : setting.authorInfo.badgeStyle === 'x'
+                              ? 'rgb(113, 118, 123)'
+                              : undefined,
                         }}
                       >
                         {setting.authorInfo.remark}
@@ -401,6 +426,7 @@ const Target = forwardRef<TargetRef, TargetProps>(({
                         style={{
                           fontSize: setting.authorInfo.remarkFontSize,
                           fontFamily: normalizeAuthorFontFamily(setting.authorInfo.remarkFontFamily),
+                          color: 'rgb(147, 147, 147)',
                         }}
                       >
                         发布于 {setting.authorInfo.weiboLocation}

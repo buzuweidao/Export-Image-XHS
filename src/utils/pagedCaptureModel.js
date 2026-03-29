@@ -19,9 +19,6 @@ export function getCaptureContentHeight(bodyElement) {
  *   height: string;
  *   maxHeight: string;
  *   minHeight: string;
- *   overflow: string;
- *   overflowX: string;
- *   overflowY: string;
  *   transform: string;
  * }}
  */
