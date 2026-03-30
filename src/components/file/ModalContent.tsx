@@ -14,6 +14,7 @@ import {AUTHOR_FONT_OPTIONS} from 'src/utils/authorInfo';
 import {buildPreviewSessionModel} from 'src/utils/previewSessionModel.js';
 import {
   copy, save, saveAll,
+  type SaveProgress,
 } from '../../utils/capture.js';
 import L from '../../L.js';
 import Target, {type TargetRef} from '../common/Target.js';
@@ -275,9 +276,12 @@ const ModalContent: FC<{
   const [isLoading, setIsLoading] = useState(true);
   const mainHeight = Math.min(764, (window.innerHeight * 0.85) - 225);
   const root = useRef<TargetRef>(null);
+  const exportRoot = useRef<TargetRef>(null);
   const previewSplitHeight = getSplitHeight(formData.split.mode, formData.width, formData.split.height);
   const previousSplitModeRef = useRef<SplitMode | undefined>(settings.split.mode);
   const previousBadgeStyleRef = useRef<string | undefined>(settings.authorInfo?.badgeStyle);
+  const [exportMarkdownEl, setExportMarkdownEl] = useState<Node | null>(null);
+  const [exportRenderKey, setExportRenderKey] = useState(0);
 
   useEffect(() => {
     setFormData(settings);
@@ -387,6 +391,7 @@ const ModalContent: FC<{
   }, [markdownEl]);
 
   const [processing, setProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState<SaveProgress | null>(null);
   const [allowCopy, setAllowCopy] = useState(true);
   const [rootHeight, setRootHeight] = useState(0);
   const [pages, setPages] = useState(1);
@@ -429,6 +434,81 @@ const ModalContent: FC<{
     });
   }, [formData.format]);
 
+  const getProcessingMessage = useCallback((progress: SaveProgress | null) => {
+    if (!progress) {
+      return '正在处理...';
+    }
+
+    if (progress.phase === 'selecting') {
+      return '请选择保存位置...';
+    }
+
+    if (progress.phase === 'preparing') {
+      return '正在准备保存...';
+    }
+
+    if (progress.phase === 'writing') {
+      return '正在写入文件...';
+    }
+
+    if ((progress.total ?? 1) > 1) {
+      return `正在生成图片 ${progress.current ?? 1}/${progress.total}...`;
+    }
+
+    return '正在生成图片...';
+  }, []);
+
+  const getProcessingPercent = useCallback((progress: SaveProgress | null) => {
+    if (!progress) {
+      return 0;
+    }
+
+    if (progress.phase === 'selecting') {
+      return 0;
+    }
+
+    if (progress.phase === 'preparing') {
+      return 8;
+    }
+
+    if (progress.phase === 'writing') {
+      return 92;
+    }
+
+    const total = Math.max(progress.total ?? 1, 1);
+    const current = Math.min(progress.current ?? 0, total);
+    return Math.min(90, Math.max(12, Math.round((current / total) * 90)));
+  }, []);
+
+  const createExportMarkdownSnapshot = useCallback(() => {
+    const snapshot = document.createElement('div');
+    const previewMarkdown = root.current?.contentElement.querySelector('.export-image-markdown');
+    const source = previewMarkdown ?? markdownEl;
+
+    Array.from(source.childNodes).forEach(node => {
+      snapshot.append(node.cloneNode(true));
+    });
+
+    return snapshot;
+  }, [markdownEl]);
+
+  const waitForBackgroundExportReady = useCallback(async () => {
+    await new Promise<void>(resolve => {
+      requestAnimationFrame(() => resolve());
+    });
+    await new Promise<void>(resolve => {
+      requestAnimationFrame(() => resolve());
+    });
+  }, []);
+
+  const prepareBackgroundExportTarget = useCallback(async () => {
+    const exportSnapshot = createExportMarkdownSnapshot();
+    setExportMarkdownEl(exportSnapshot);
+    setExportRenderKey(key => key + 1);
+    await waitForBackgroundExportReady();
+    return exportRoot.current;
+  }, [createExportMarkdownSnapshot, waitForBackgroundExportReady]);
+
   const handleSave = useCallback(async () => {
     if ((formData.width || 640) <= 20) {
       new Notice(L.invalidWidth());
@@ -441,20 +521,28 @@ const ModalContent: FC<{
 
     setProcessing(true);
     try {
+      setProcessingProgress({ phase: 'selecting' });
+      const backgroundTarget = await prepareBackgroundExportTarget();
+      if (!backgroundTarget) {
+        throw new Error('Background export target is not ready');
+      }
       await save(
         app,
-        root.current.contentElement,
+        backgroundTarget.contentElement,
         title,
         formData.resolutionMode,
         formData.format,
         Platform.isMobile,
+        setProcessingProgress,
       );
     } catch {
       new Notice(L.saveFail());
+    } finally {
+      setExportMarkdownEl(null);
+      setProcessingProgress(null);
+      setProcessing(false);
     }
-
-    setProcessing(false);
-  }, [root, formData.resolutionMode, formData.format, title, formData.width]);
+  }, [prepareBackgroundExportTarget, formData.resolutionMode, formData.format, title, formData.width]);
   const handleCopy = useCallback(async () => {
     if ((formData.width || 640) <= 20) {
       new Notice(L.invalidWidth());
@@ -487,23 +575,51 @@ const ModalContent: FC<{
 
     setProcessing(true);
     try {
+      setProcessingProgress({ phase: 'selecting' });
+      const backgroundTarget = await prepareBackgroundExportTarget();
+      if (!backgroundTarget) {
+        throw new Error('Background export target is not ready');
+      }
       await saveAll(
-        root.current,
+        backgroundTarget,
         formData,
         formData.format,
         formData.resolutionMode,
         app,
         title,
+        setProcessingProgress,
       );
     } catch {
       new Notice(L.saveFail());
+    } finally {
+      setExportMarkdownEl(null);
+      setProcessingProgress(null);
+      setProcessing(false);
     }
+  }, [prepareBackgroundExportTarget, formData, app, title]);
 
-    setProcessing(false);
-  }, [root, formData, app, title]);
+  const processingPercent = getProcessingPercent(processingProgress);
+  const showProcessingOverlay = false;
+  const showActionProgress = processing && processingProgress !== null;
 
   return (
     <div className='export-image-preview-root'>
+      {exportMarkdownEl && (
+        <div className='export-image-background-stage' aria-hidden='true'>
+          <Target
+            key={exportRenderKey}
+            ref={exportRoot}
+            editable={false}
+            frontmatter={frontmatter}
+            markdownEl={exportMarkdownEl}
+            setting={formData}
+            metadataMap={metadataMap}
+            app={app}
+            title={title}
+            isProcessing={false}
+          ></Target>
+        </div>
+      )}
       <div className='export-image-preview-main'>
         <div className='export-image-preview-left'>
           <FormItems
@@ -546,12 +662,51 @@ const ModalContent: FC<{
                   isProcessing={processing}
                   onSplitChange={handleSplitChange}
                 ></Target>
+                {showProcessingOverlay && (
+                  <div className='export-image-processing-overlay'>
+                    <div className='export-image-loading-spinner'></div>
+                    <div className='export-image-loading-text'>
+                      {getProcessingMessage(processingProgress)}
+                    </div>
+                    <div className='export-image-processing-progress'>
+                      <div className='export-image-progress-bar'>
+                        <div
+                          className='export-image-progress-bar-inner'
+                          style={{ width: `${processingPercent}%` }}
+                        ></div>
+                      </div>
+                      <div className='export-image-processing-percent'>
+                        {processingPercent}%
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
       <div className='export-image-preview-actions'>
+        {showActionProgress && (
+          <div className='export-image-action-progress'>
+            <div className='export-image-loading-text'>
+              {getProcessingMessage(processingProgress)}
+            </div>
+            {processingProgress?.phase !== 'selecting' && (
+              <div className='export-image-processing-progress'>
+                <div className='export-image-progress-bar'>
+                  <div
+                    className='export-image-progress-bar-inner'
+                    style={{ width: `${processingPercent}%` }}
+                  ></div>
+                </div>
+                <div className='export-image-processing-percent'>
+                  {processingPercent}%
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {formData.split.mode === 'none' && pages === 1 && (
           <div>
             <button

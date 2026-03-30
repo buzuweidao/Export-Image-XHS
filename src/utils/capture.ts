@@ -19,6 +19,24 @@ import { buildCaptureSplitModel } from './captureSplitModel.js';
 import { getPagedCaptureShellClassName } from './pagedCaptureShellModel.js';
 import { buildPagedCaptureLayerPlan } from './pagedCaptureLayerModel.js';
 
+export type SaveProgressPhase = 'selecting' | 'preparing' | 'rendering' | 'writing';
+export type SaveProgress = {
+  phase: SaveProgressPhase;
+  current?: number;
+  total?: number;
+};
+type DesktopSaveTarget =
+  | { kind: 'path'; filePath: string }
+  | {
+    kind: 'handle';
+    fileHandle: {
+      createWritable: () => Promise<{
+        write: (data: Blob | ArrayBuffer | Uint8Array | string) => Promise<void>;
+        close: () => Promise<void>;
+      }>;
+    };
+  };
+
 /**
  * 将元素中的 app:// 图片转为 base64 data URL。
  * 优先用 fetch 读取原始字节（无损），失败时回退 canvas。
@@ -72,6 +90,24 @@ async function getBlob(el: HTMLElement, resolutionMode: ResolutionMode, type: st
   });
 }
 
+async function flushProgressPaint() {
+  await new Promise<void>(resolve => {
+    requestAnimationFrame(() => {
+      setTimeout(resolve, 0);
+    });
+  });
+}
+
+async function yieldToBrowser(delayMs = 16) {
+  await new Promise<void>(resolve => {
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    }, delayMs);
+  });
+}
+
 async function makePdf(blob: Blob, el: HTMLElement) {
   const dataUrl = await fileToBase64(blob);
   const pdf = new JsPdf({
@@ -97,6 +133,169 @@ async function saveToVault(app: App, blob: Blob, filename: string) {
   return filePath;
 }
 
+function isPickerAbort(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
+function getRuntimeRequire() {
+  const runtime = globalThis as typeof globalThis & {
+    require?: (id: string) => unknown;
+  };
+
+  if (typeof require === 'function') {
+    return require;
+  }
+
+  return runtime.require;
+}
+
+function getElectronBridge() {
+  const runtime = globalThis as typeof globalThis & {
+    electron?: {
+      dialog?: {
+        showSaveDialog?: (
+          browserWindow: unknown,
+          options: {
+            defaultPath: string;
+            filters?: Array<{ name: string; extensions: string[] }>;
+          },
+        ) => Promise<{ canceled: boolean; filePath?: string }>;
+      };
+      remote?: {
+        dialog?: {
+          showSaveDialog?: (
+            browserWindow: unknown,
+            options: {
+              defaultPath: string;
+              filters?: Array<{ name: string; extensions: string[] }>;
+            },
+          ) => Promise<{ canceled: boolean; filePath?: string }>;
+        };
+        getCurrentWindow?: () => unknown;
+      };
+    };
+    electronWindow?: unknown;
+  };
+
+  try {
+    return runtime.electron ?? getRuntimeRequire()?.('electron') as typeof runtime.electron | undefined;
+  } catch {
+    return runtime.electron;
+  }
+}
+
+async function showDesktopSavePicker(
+  filename: string,
+  accept: Record<string, string[]>,
+) : Promise<DesktopSaveTarget | null | undefined> {
+  const electronBridge = getElectronBridge();
+  const electronDialog = electronBridge?.dialog ?? electronBridge?.remote?.dialog;
+  const electronWindow = (globalThis as typeof globalThis & {
+    electronWindow?: unknown;
+  }).electronWindow ?? electronBridge?.remote?.getCurrentWindow?.();
+  const filters = Object.entries(accept).map(([name, extensions]) => ({
+    name,
+    extensions: extensions.map(extension => extension.replace(/^\./, '')),
+  }));
+
+  if (electronDialog?.showSaveDialog) {
+    const result = await electronDialog.showSaveDialog(electronWindow, {
+      defaultPath: filename,
+      filters,
+    });
+    if (result.canceled) {
+      return null;
+    }
+
+    if (result.filePath) {
+      return {
+        kind: 'path',
+        filePath: result.filePath,
+      };
+    }
+  }
+
+  const picker = (globalThis as typeof globalThis & {
+    showSaveFilePicker?: (options: {
+      suggestedName: string;
+      types: Array<{
+        description: string;
+        accept: Record<string, string[]>;
+      }>;
+    }) => Promise<{
+      createWritable: () => Promise<{
+        write: (data: Blob | ArrayBuffer | Uint8Array | string) => Promise<void>;
+        close: () => Promise<void>;
+      }>;
+    }>;
+  }).showSaveFilePicker;
+
+  if (!picker) {
+    return undefined;
+  }
+
+  try {
+    const fileHandle = await picker({
+      suggestedName: filename,
+      types: [{
+        description: 'Export Image XHS',
+        accept,
+      }],
+    });
+    return {
+      kind: 'handle',
+      fileHandle,
+    };
+  } catch (error) {
+    if (isPickerAbort(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+async function writeWithPicker(
+  fileHandle: Awaited<ReturnType<typeof showDesktopSavePicker>>,
+  data: Blob | ArrayBuffer | Uint8Array | string,
+) {
+  if (!fileHandle) {
+    return false;
+  }
+
+  if (fileHandle.kind === 'path') {
+    try {
+      const fs = getRuntimeRequire()?.('node:fs/promises') as {
+        writeFile?: (path: string, content: Uint8Array | string) => Promise<void>;
+      } | undefined;
+      if (!fs?.writeFile) {
+        return false;
+      }
+
+      let content: Uint8Array | string;
+      if (typeof data === 'string') {
+        content = data;
+      } else if (data instanceof Uint8Array) {
+        content = data;
+      } else if (data instanceof ArrayBuffer) {
+        content = new Uint8Array(data);
+      } else {
+        content = new Uint8Array(await data.arrayBuffer());
+      }
+
+      await fs.writeFile(fileHandle.filePath, content);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const writable = await fileHandle.fileHandle.createWritable();
+  await writable.write(data);
+  await writable.close();
+  return true;
+}
+
 function cloneForCapture(el: HTMLElement) {
   const clone = el.cloneNode(true) as HTMLElement;
   clone.className = sanitizeCaptureClassName(clone.className);
@@ -114,6 +313,18 @@ function cloneForCapture(el: HTMLElement) {
   return clone;
 }
 
+function cloneCaptureNode(el: HTMLElement) {
+  const clone = el.cloneNode(true) as HTMLElement;
+  clone.className = sanitizeCaptureClassName(clone.className);
+  clone.querySelectorAll('.is-selected').forEach(node => {
+    if (node instanceof HTMLElement) {
+      node.className = sanitizeCaptureClassName(node.className);
+    }
+  });
+  clone.querySelectorAll('[data-export-control="true"]').forEach(node => node.remove());
+  return clone;
+}
+
 export async function save(
   app: App,
   el: HTMLElement,
@@ -121,14 +332,35 @@ export async function save(
   resolutionMode: ResolutionMode,
   format: FileFormat,
   isMobile: boolean,
+  onProgress?: (progress: SaveProgress) => void,
 ) {
-  await convertLoadedImages(el);
-  const blob: Blob = await getBlob(
-    el,
-    resolutionMode,
-    getMime(format),
-  );
   const filename = `${title.replaceAll(/\s+/g, '_')}.${format.replace(/\d$/, '')}`;
+  onProgress?.({ phase: 'selecting' });
+  const desktopPicker = !isMobile
+    ? await showDesktopSavePicker(filename, format === 'pdf'
+      ? { 'application/pdf': ['.pdf'] }
+      : { [getMime(format)]: [`.${format.replace(/\d$/, '')}`] })
+    : undefined;
+  if (desktopPicker === null) {
+    return;
+  }
+
+  onProgress?.({ phase: 'preparing' });
+  await flushProgressPaint();
+  onProgress?.({ phase: 'rendering', current: 1, total: 1 });
+  await flushProgressPaint();
+  await yieldToBrowser();
+  const captureRoot = cloneForCapture(el);
+
+  try {
+    await convertLoadedImages(captureRoot);
+    await yieldToBrowser();
+    const blob: Blob = await getBlob(
+      captureRoot,
+      resolutionMode,
+      getMime(format),
+    );
+    await yieldToBrowser(8);
   switch (format) {
     case 'jpg':
     case 'webp':
@@ -138,29 +370,48 @@ export async function save(
         const filePath = await app.fileManager.getAvailablePathForAttachment(
           filename,
         );
+        onProgress?.({ phase: 'writing', current: 1, total: 1 });
+        await flushProgressPaint();
         await app.vault.createBinary(filePath, await blob.arrayBuffer());
         new Notice(L.saveSuccess({ filePath }));
       } else {
-        saveAs(blob, filename);
+        onProgress?.({ phase: 'writing', current: 1, total: 1 });
+        await flushProgressPaint();
+        const saved = await writeWithPicker(desktopPicker, blob);
+        if (!saved && desktopPicker === undefined) {
+          saveAs(blob, filename);
+        }
       }
 
       break;
     }
 
     case 'pdf': {
-      const pdf = await makePdf(blob, el);
+      onProgress?.({ phase: 'rendering', current: 1, total: 1 });
+      const pdf = await makePdf(blob, captureRoot);
       if (isMobile) {
         const filePath = await app.fileManager.getAvailablePathForAttachment(
           filename,
         );
+        onProgress?.({ phase: 'writing', current: 1, total: 1 });
+        await flushProgressPaint();
         await app.vault.createBinary(filePath, pdf.output('arraybuffer'));
         new Notice(L.saveSuccess({ filePath }));
       } else {
-        pdf.save(filename);
+        const pdfBuffer = pdf.output('arraybuffer');
+        onProgress?.({ phase: 'writing', current: 1, total: 1 });
+        await flushProgressPaint();
+        const saved = await writeWithPicker(desktopPicker, pdfBuffer);
+        if (!saved && desktopPicker === undefined) {
+          pdf.save(filename);
+        }
       }
 
       break;
     }
+  }
+  } finally {
+    captureRoot.remove();
   }
 }
 
@@ -275,7 +526,17 @@ export async function savePageElements(
     zip.file(filename, blob);
   }
   const zipBlob = await zip.generateAsync({ type: 'blob' });
-  saveAs(zipBlob, `${title.replaceAll(/\s+/g, '_')}.zip`);
+  const zipFilename = `${title.replaceAll(/\s+/g, '_')}.zip`;
+  const desktopPicker = await showDesktopSavePicker(zipFilename, {
+    'application/zip': ['.zip'],
+  });
+  if (desktopPicker === null) {
+    return;
+  }
+  const saved = await writeWithPicker(desktopPicker, zipBlob);
+  if (!saved && desktopPicker === undefined) {
+    saveAs(zipBlob, zipFilename);
+  }
 }
 
 export async function saveMultipleFiles(
@@ -351,164 +612,223 @@ export async function saveAll(
   resolutionMode: ResolutionMode,
   app: App,
   title: string,
+  onProgress?: (progress: SaveProgress) => void,
 ) {
   try {
+    const desktopFilename = format === 'pdf'
+      ? `${title.replaceAll(/\s+/g, '_')}.pdf`
+      : `${title.replaceAll(/\s+/g, '_')}.zip`;
+    onProgress?.({ phase: 'selecting' });
+    const desktopPicker = !Platform.isMobile
+      ? await showDesktopSavePicker(desktopFilename, format === 'pdf'
+        ? { 'application/pdf': ['.pdf'] }
+        : { 'application/zip': ['.zip'] })
+      : undefined;
+    if (desktopPicker === null) {
+      return;
+    }
+    onProgress?.({ phase: 'preparing' });
+    await flushProgressPaint();
     const { split } = settings;
-    const rootElement = target.contentElement;
+    const captureRootElement = cloneForCapture(target.contentElement);
 
-    // 在克隆/捕获之前，将已加载的 app:// 图片转为 base64
-    await convertLoadedImages(rootElement);
+    try {
+      // 在离屏副本中将已加载的 app:// 图片转为 base64，避免阻塞当前预览重绘
+      await convertLoadedImages(captureRootElement);
 
-    const bodyElement = rootElement.querySelector<HTMLElement>('.export-image-preview-container');
-    const authorElement = rootElement.querySelector<HTMLElement>('.user-info-container');
-    const watermarkElement = rootElement.querySelector<HTMLElement>('.export-image-static-watermark');
-    const bodyTarget = bodyElement || rootElement;
-    const authorHeight = (
-      settings.authorInfo.show
-      && settings.authorInfo.position === 'top'
-      && authorElement
-    ) ? authorElement.clientHeight : 0;
+      const bodyElement = captureRootElement.querySelector<HTMLElement>('.export-image-preview-container');
+      const authorElement = captureRootElement.querySelector<HTMLElement>('.user-info-container');
+      const watermarkElement = captureRootElement.querySelector<HTMLElement>('.export-image-static-watermark');
+      const bodyTarget = bodyElement || captureRootElement;
+      const authorHeight = (
+        settings.authorInfo.show
+        && settings.authorInfo.position === 'top'
+        && authorElement
+      ) ? authorElement.clientHeight : 0;
 
-    const totalHeight = getCaptureContentHeight(bodyTarget);
-    const elements = getElementMeasures(bodyTarget, split.mode);
-    const {
-      splitPositions,
-      pageHeight,
-    } = buildCaptureSplitModel({
-      setting: settings,
-      totalHeight,
-      authorHeight,
-      elements,
-    });
-
-    const createPageCaptureElement = (startY: number, pageIndex: number, viewportHeight: number) => {
-      const layerPlan = buildPagedCaptureLayerPlan({
-        pageIndex,
+      const totalHeight = getCaptureContentHeight(bodyTarget);
+      const elements = getElementMeasures(bodyTarget, split.mode);
+      const {
+        splitPositions,
+        pageHeight,
+      } = buildCaptureSplitModel({
+        setting: settings,
+        totalHeight,
         authorHeight,
-        hasAuthorElement: Boolean(authorElement),
-        hasWatermarkElement: Boolean(watermarkElement),
-      });
-      const pageEl = document.createElement('div');
-      pageEl.className = getPagedCaptureShellClassName(rootElement.className);
-      pageEl.setCssProps({
-        width: `${target.element.clientWidth}px`,
-        height: `${pageHeight}px`,
-        position: layerPlan.shellPosition,
-        overflow: 'hidden',
-        'box-sizing': 'border-box',
-        'pointer-events': 'none',
-      });
-      pageEl.style.background = getComputedStyle(target.contentElement).background;
-
-      if (layerPlan.includeAuthor && authorElement) {
-        pageEl.append(authorElement.cloneNode(true));
-      }
-
-      const viewportEl = document.createElement('div');
-      viewportEl.setCssProps({
-        height: `${Math.max(1, viewportHeight)}px`,
-        overflow: 'hidden',
-        position: 'relative',
+        elements,
       });
 
-      const bodyClone = bodyTarget.cloneNode(true) as HTMLElement;
-      Object.assign(bodyClone.style, getPagedBodyCloneStyle(startY));
-      bodyClone.querySelectorAll('.export-image-split-line').forEach(line => line.remove());
-      viewportEl.append(bodyClone);
-      pageEl.append(viewportEl);
-      if (layerPlan.includeWatermark && watermarkElement) {
-        pageEl.append(watermarkElement.cloneNode(true));
-      }
-      document.body.append(pageEl);
-      return pageEl;
-    };
+      const createPageCaptureElement = (startY: number, pageIndex: number, viewportHeight: number) => {
+        const layerPlan = buildPagedCaptureLayerPlan({
+          pageIndex,
+          authorHeight,
+          hasAuthorElement: Boolean(authorElement),
+          hasWatermarkElement: Boolean(watermarkElement),
+        });
+        const pageEl = document.createElement('div');
+        pageEl.className = getPagedCaptureShellClassName(captureRootElement.className);
+        pageEl.setCssProps({
+          width: `${captureRootElement.clientWidth}px`,
+          height: `${pageHeight}px`,
+          position: layerPlan.shellPosition,
+          overflow: 'hidden',
+          'box-sizing': 'border-box',
+          'pointer-events': 'none',
+        });
+        pageEl.style.background = getComputedStyle(captureRootElement).background;
 
-    if (format === 'pdf') {
+        if (layerPlan.includeAuthor && authorElement) {
+          pageEl.append(authorElement.cloneNode(true));
+        }
+
+        const viewportEl = document.createElement('div');
+        viewportEl.setCssProps({
+          height: `${Math.max(1, viewportHeight)}px`,
+          overflow: 'hidden',
+          position: 'relative',
+        });
+
+        const bodyClone = bodyTarget.cloneNode(true) as HTMLElement;
+        Object.assign(bodyClone.style, getPagedBodyCloneStyle(startY));
+        bodyClone.querySelectorAll('.export-image-split-line').forEach(line => line.remove());
+        viewportEl.append(bodyClone);
+        pageEl.append(viewportEl);
+        if (layerPlan.includeWatermark && watermarkElement) {
+          pageEl.append(watermarkElement.cloneNode(true));
+        }
+        document.body.append(pageEl);
+        return pageEl;
+      };
+
+      const createClippedRootCaptureElement = (startY: number, height: number) => {
+        const clipEl = document.createElement('div');
+        clipEl.className = 'export-image-hidden';
+        clipEl.setCssProps({
+          width: `${captureRootElement.clientWidth}px`,
+          height: `${Math.max(1, height)}px`,
+          overflow: 'hidden',
+          'pointer-events': 'none',
+        });
+
+        const rootClone = cloneCaptureNode(captureRootElement);
+        rootClone.setCssProps({
+          transform: `translateY(-${startY}px)`,
+        });
+
+        clipEl.append(rootClone);
+        document.body.append(clipEl);
+        return clipEl;
+      };
+
+      if (format === 'pdf') {
       // PDF 格式：创建多页 PDF
-      let pdf: JsPdf | undefined;
+        let pdf: JsPdf | undefined;
 
-      for (let pageIndex = 0; pageIndex < splitPositions.length; pageIndex++) {
-        const { startY, height } = splitPositions[pageIndex];
-        const captureHeight = isPagedSplitMode(split.mode) ? pageHeight : height;
-        const captureElement = isPagedSplitMode(split.mode)
-          ? createPageCaptureElement(startY, pageIndex, height)
-          : target.element;
-
-        if (!isPagedSplitMode(split.mode)) {
-          target.setClip(startY, height);
-          await delay(20);
-        }
-
-        const blob = await getBlob(
-          captureElement,
-          resolutionMode,
-          'image/jpeg',
-        );
-        const dataUrl = await fileToBase64(blob);
-
-        if (!pdf) {
-          pdf = new JsPdf({
-            unit: 'in',
-            format: [captureElement.clientWidth / 96, captureHeight / 96],
-            orientation: captureElement.clientWidth > captureHeight ? 'l' : 'p',
-            compress: true,
+        for (let pageIndex = 0; pageIndex < splitPositions.length; pageIndex++) {
+          onProgress?.({
+            phase: 'rendering',
+            current: pageIndex + 1,
+            total: splitPositions.length,
           });
-        } else {
-          pdf.addPage([captureElement.clientWidth / 96, captureHeight / 96], captureElement.clientWidth > captureHeight ? 'l' : 'p');
-        }
+          await flushProgressPaint();
+          await yieldToBrowser();
+          const { startY, height } = splitPositions[pageIndex];
+          const captureHeight = isPagedSplitMode(split.mode) ? pageHeight : height;
+          const captureElement = isPagedSplitMode(split.mode)
+            ? createPageCaptureElement(startY, pageIndex, height)
+            : createClippedRootCaptureElement(startY, height);
 
-        pdf.addImage(dataUrl, 'JPEG', 0, 0, captureElement.clientWidth / 96, captureHeight / 96);
-        if (captureElement !== target.element) {
+          await yieldToBrowser(8);
+
+          const blob = await getBlob(
+            captureElement,
+            resolutionMode,
+            'image/jpeg',
+          );
+          await yieldToBrowser(8);
+          const dataUrl = await fileToBase64(blob);
+
+          if (!pdf) {
+            pdf = new JsPdf({
+              unit: 'in',
+              format: [captureElement.clientWidth / 96, captureHeight / 96],
+              orientation: captureElement.clientWidth > captureHeight ? 'l' : 'p',
+              compress: true,
+            });
+          } else {
+            pdf.addPage([captureElement.clientWidth / 96, captureHeight / 96], captureElement.clientWidth > captureHeight ? 'l' : 'p');
+          }
+
+          pdf.addImage(dataUrl, 'JPEG', 0, 0, captureElement.clientWidth / 96, captureHeight / 96);
           captureElement.remove();
-        }
-      }
-
-      const filename = `${title.replaceAll(/\s+/g, '_')}.pdf`;
-      if (Platform.isMobile) {
-        const filePath = await saveToVault(app, new Blob([pdf!.output('arraybuffer')]), filename);
-        new Notice(L.saveSuccess({ filePath }));
-      } else {
-        pdf?.save(filename);
-      }
-    } else {
-      // 其他图片格式：分别保存每个部分
-      const ext = format.replace(/\d$/, '');
-      const zip = new JSZip();
-      const blobs: { blob: Blob; filename: string }[] = [];
-
-      for (let i = 0; i < splitPositions.length; i++) {
-        const { startY, height } = splitPositions[i];
-        const captureElement = isPagedSplitMode(split.mode)
-          ? createPageCaptureElement(startY, i, height)
-          : target.element;
-
-        if (!isPagedSplitMode(split.mode)) {
-          target.setClip(startY, height);
-          await delay(20);
+          await yieldToBrowser(8);
         }
 
-        const blob = await getBlob(captureElement, resolutionMode, getMime(format));
-        const filename = `${title.replaceAll(/\s+/g, '_')}_${i + 1}.${ext}`;
-        blobs.push({ blob, filename });
-        if (captureElement !== target.element) {
-          captureElement.remove();
-        }
-      }
-
-      if (Platform.isMobile) {
-        // 在移动端直接保存到 vault
-        for (const { blob, filename } of blobs) {
-          const filePath = await saveToVault(app, blob, filename);
+        const filename = `${title.replaceAll(/\s+/g, '_')}.pdf`;
+        if (Platform.isMobile) {
+          const filePath = await saveToVault(app, new Blob([pdf!.output('arraybuffer')]), filename);
           new Notice(L.saveSuccess({ filePath }));
+        } else {
+          const pdfBuffer = pdf?.output('arraybuffer');
+          onProgress?.({ phase: 'writing', total: splitPositions.length });
+          await flushProgressPaint();
+          const saved = pdfBuffer ? await writeWithPicker(desktopPicker, pdfBuffer) : false;
+          if (!saved && desktopPicker === undefined) {
+            pdf?.save(filename);
+          }
         }
       } else {
-        // 在桌面端创建 zip
-        for (const { blob, filename } of blobs) {
-          zip.file(filename, blob);
+      // 其他图片格式：分别保存每个部分
+        const ext = format.replace(/\d$/, '');
+        const zip = new JSZip();
+        const blobs: { blob: Blob; filename: string }[] = [];
+
+        for (let i = 0; i < splitPositions.length; i++) {
+          onProgress?.({
+            phase: 'rendering',
+            current: i + 1,
+            total: splitPositions.length,
+          });
+          await flushProgressPaint();
+          await yieldToBrowser();
+          const { startY, height } = splitPositions[i];
+          const captureElement = isPagedSplitMode(split.mode)
+            ? createPageCaptureElement(startY, i, height)
+            : createClippedRootCaptureElement(startY, height);
+
+          await yieldToBrowser(8);
+
+          const blob = await getBlob(captureElement, resolutionMode, getMime(format));
+          await yieldToBrowser(8);
+          const filename = `${title.replaceAll(/\s+/g, '_')}_${i + 1}.${ext}`;
+          blobs.push({ blob, filename });
+          captureElement.remove();
+          await yieldToBrowser(8);
         }
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        saveAs(zipBlob, `${title.replaceAll(/\s+/g, '_')}.zip`);
+
+        if (Platform.isMobile) {
+        // 在移动端直接保存到 vault
+          for (const { blob, filename } of blobs) {
+            const filePath = await saveToVault(app, blob, filename);
+            new Notice(L.saveSuccess({ filePath }));
+          }
+        } else {
+        // 在桌面端创建 zip
+          for (const { blob, filename } of blobs) {
+            zip.file(filename, blob);
+          }
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          const zipFilename = `${title.replaceAll(/\s+/g, '_')}.zip`;
+          onProgress?.({ phase: 'writing', total: splitPositions.length });
+          await flushProgressPaint();
+          const saved = await writeWithPicker(desktopPicker, zipBlob);
+          if (!saved && desktopPicker === undefined) {
+            saveAs(zipBlob, zipFilename);
+          }
+        }
       }
+    } finally {
+      captureRootElement.remove();
     }
   } finally {
     // 确保无论成功还是失败都恢复原始状态

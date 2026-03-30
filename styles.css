@@ -108,11 +108,37 @@ If your plugin does not need CSS, delete this file.
 }
 
 .export-image-preview-live-frame {
+  position: relative;
   flex-shrink: 0;
   border: 1px var(--divider-color) solid;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.15);
+}
+
+.export-image-processing-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: color-mix(in srgb, var(--background-primary) 84%, transparent);
+  z-index: 2;
+}
+
+.export-image-processing-progress {
+  width: min(320px, calc(100% - 48px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-image-processing-percent {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 .export-image-root .user-info-container {
   display: flex;
@@ -184,9 +210,11 @@ If your plugin does not need CSS, delete this file.
   display: flex;
   align-items: start;
   justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 .export-image-preview-actions button {
-  margin: 0 32px;
+  margin: 0 16px;
 }
 
 .export-image-preview-actions p {
@@ -194,6 +222,16 @@ If your plugin does not need CSS, delete this file.
   font-size: 12px;
   color: var(--color-red);
   text-align: center;
+}
+
+.export-image-action-progress {
+  min-width: 240px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
 }
 
 .export-image-root .multi-select-pill-content {
@@ -284,7 +322,6 @@ If your plugin does not need CSS, delete this file.
 }
 
 .export-image-progress-bar {
-  max-width: 320px;
   width: 100%;
   height: var(--size-4-2);
   border-radius: var(--radius-s);
@@ -326,6 +363,16 @@ If your plugin does not need CSS, delete this file.
   top: 9999px;
   width: auto;
   height: auto;
+}
+
+.export-image-background-stage {
+  position: fixed;
+  top: 0;
+  left: -20000px;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .export-image-split-hr hr {
