@@ -1,6 +1,6 @@
 {
   "name": "export-image-xhs",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "Export notes as shareable multi-image cards with editable live preview, Xiaohongshu-oriented layout, author header, watermark, and pagination controls.",
   "main": "main.js",
   "scripts": {
