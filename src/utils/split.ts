@@ -1,6 +1,9 @@
 import { isAutoLikeSplitMode } from './splitMode.js';
 import { calculateAutoLikeSplitPositions } from './splitCore.js';
-import { collectAutoLikeMeasureTargets } from './splitMeasureModel.js';
+import {
+  collectAutoLikeMeasureTargets,
+  collectBlockLineMeasures,
+} from './splitMeasureModel.js';
 
 interface SplitPosition {
   startY: number;
@@ -19,6 +22,7 @@ interface SplitOptions {
 interface ElementMeasure {
   top: number;
   height: number;
+  children?: ElementMeasure[];
 }
 
 /**
@@ -41,26 +45,29 @@ export function getElementMeasures(container: HTMLElement, mode: SplitMode): Ele
     });
   } else if (isAutoLikeSplitMode(mode)) {
     const markdownRoot = container.querySelector('.export-image-markdown');
-    const paragraphs = collectAutoLikeMeasureTargets(markdownRoot);
+    const blocks = collectAutoLikeMeasureTargets(markdownRoot);
     const containerRect = container.getBoundingClientRect();
 
-    return paragraphs.map((p, index) => {
-      const rect = p.getBoundingClientRect();
+    return blocks.map((block, index) => {
+      const rect = block.getBoundingClientRect();
       const currentTop = rect.top - containerRect.top;
+      const lineMeasures = collectBlockLineMeasures(block, container);
 
-      if (index < paragraphs.length - 1) {
+      if (index < blocks.length - 1) {
         // 如果不是最后一个元素，高度取到下一个元素的顶部
-        const nextRect = paragraphs[index + 1].getBoundingClientRect();
+        const nextRect = blocks[index + 1].getBoundingClientRect();
         const nextTop = nextRect.top - containerRect.top;
         return {
           top: currentTop,
           height: nextTop - currentTop,
+          children: lineMeasures,
         };
       } else {
         // 最后一个元素使用其实际高度
         return {
           top: currentTop,
           height: rect.height,
+          children: lineMeasures,
         };
       }
     });

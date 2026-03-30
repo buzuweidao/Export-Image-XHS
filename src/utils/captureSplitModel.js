@@ -5,6 +5,8 @@ import {
 } from './splitMode.js';
 import { calculateAutoLikeSplitPositions } from './splitCore.js';
 
+const XIAOHONGSHU_PAGE_GUARD = 8;
+
 function calculatePositions({
   mode,
   height,
@@ -76,8 +78,10 @@ export function buildCaptureSplitModel({
   const padding = setting?.padding || {};
   const width = setting?.width;
   const bottomPadding = padding.bottom ?? 0;
+  const topPadding = padding.top ?? 0;
   const safeTotalHeight = Math.max(1, totalHeight);
   const pageHeight = getSplitHeight(split.mode, width, split.height);
+  const pageGuard = split.mode === 'xiaohongshu' ? XIAOHONGSHU_PAGE_GUARD : 0;
 
   if (split.mode === 'none') {
     return {
@@ -90,7 +94,12 @@ export function buildCaptureSplitModel({
   }
 
   const splitContentHeight = isPagedSplitMode(split.mode)
-    ? Math.max(1, pageHeight - bottomPadding)
+    ? Math.max(
+      1,
+      split.mode === 'xiaohongshu'
+        ? pageHeight - topPadding - bottomPadding - pageGuard
+        : pageHeight - bottomPadding - pageGuard,
+    )
     : getSplitContentHeight(
       split.mode,
       width,
@@ -102,7 +111,14 @@ export function buildCaptureSplitModel({
   const splitPositions = calculatePositions({
     mode: split.mode,
     height: splitContentHeight,
-    firstPageHeight: isPagedSplitMode(split.mode) ? Math.max(1, pageHeight - authorHeight) : undefined,
+    firstPageHeight: isPagedSplitMode(split.mode)
+      ? Math.max(
+        1,
+        split.mode === 'xiaohongshu'
+          ? pageHeight - authorHeight - topPadding - bottomPadding - pageGuard
+          : pageHeight - authorHeight - pageGuard,
+      )
+      : undefined,
     overlap: split.overlap,
     totalHeight: safeTotalHeight,
     width,
