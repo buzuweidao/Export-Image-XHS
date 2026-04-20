@@ -36,6 +36,21 @@ const formSchema: FormSchema<ISettings> = [
     type: 'number',
   },
   {
+    label: '导出主题',
+    path: 'exportTheme.mode',
+    type: 'select',
+    options: [
+      {text: '跟随 Obsidian', value: 'obsidian'},
+      {text: '自定义背景', value: 'custom'},
+    ],
+  },
+  {
+    label: '背景颜色',
+    path: 'exportTheme.backgroundColor',
+    type: 'color',
+    when: settings => settings.exportTheme.mode === 'custom',
+  },
+  {
     path: 'padding.top',
     label: L.setting.padding.top(),
     desc: L.setting.padding.description(),

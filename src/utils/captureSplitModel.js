@@ -75,7 +75,7 @@ export function buildCaptureSplitModel({
   const split = setting?.split || { mode: 'none', height: 0, overlap: 0 };
   const padding = setting?.padding || {};
   const width = setting?.width;
-  const bottomPadding = padding.bottom ?? 0;
+  const topPadding = padding.top ?? 0;
   const safeTotalHeight = Math.max(1, totalHeight);
   const pageHeight = getSplitHeight(split.mode, width, split.height);
 
@@ -90,7 +90,7 @@ export function buildCaptureSplitModel({
   }
 
   const splitContentHeight = isPagedSplitMode(split.mode)
-    ? Math.max(1, pageHeight - bottomPadding)
+    ? Math.max(1, pageHeight - topPadding)
     : getSplitContentHeight(
       split.mode,
       width,
@@ -102,7 +102,9 @@ export function buildCaptureSplitModel({
   const splitPositions = calculatePositions({
     mode: split.mode,
     height: splitContentHeight,
-    firstPageHeight: isPagedSplitMode(split.mode) ? Math.max(1, pageHeight - authorHeight) : undefined,
+    firstPageHeight: isPagedSplitMode(split.mode)
+      ? Math.max(1, pageHeight - authorHeight)
+      : undefined,
     overlap: split.overlap,
     totalHeight: safeTotalHeight,
     width,

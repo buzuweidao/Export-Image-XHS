@@ -10,6 +10,10 @@ export const DEFAULT_SETTINGS: ISettings = {
   showMetadata: false,
   recursive: false,
   quickExportSelection: false,
+  exportTheme: {
+    mode: 'obsidian',
+    backgroundColor: '#ffffff',
+  },
   padding: {
     top: 40,
     right: 40,

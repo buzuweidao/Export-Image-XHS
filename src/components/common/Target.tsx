@@ -16,6 +16,7 @@ import { buildCaptureSplitModel } from 'src/utils/captureSplitModel';
 import { WEIBO_BADGE_URL } from 'src/utils/badgeAssets';
 import { getElementMeasures } from 'src/utils/split';
 import { getAuthorAlign, getAuthorPadding, getBodyPadding } from 'src/utils/pageLayout';
+import { getExportThemeCssVars } from 'src/utils/exportTheme.js';
 import Metadata from './Metadata';
 import StaticWatermark from './StaticWatermark';
 
@@ -226,6 +227,10 @@ const Target = forwardRef<TargetRef, TargetProps>(({
   const bodyPadding = useMemo(() => getBodyPadding(setting), [setting]);
   const authorPadding = useMemo(() => getAuthorPadding(setting), [setting]);
   const authorAlign = useMemo(() => getAuthorAlign(setting), [setting]);
+  const exportThemeVars = useMemo(
+    () => getExportThemeCssVars(setting) as React.CSSProperties,
+    [setting.exportTheme?.backgroundColor, setting.exportTheme?.mode],
+  );
   const authorJustify = alignMap[(authorAlign as keyof typeof alignMap)] || alignMap.left;
   const frontmatterClassName = useMemo(
     () => resolveFrontmatterClassName(frontmatter),
@@ -244,10 +249,12 @@ const Target = forwardRef<TargetRef, TargetProps>(({
         className={clsx('export-image-root markdown-reading-view', frontmatterClassName)}
         ref={rootRef}
         style={{
+          ...exportThemeVars,
           width: `${setting.width}px`,
           boxSizing: 'border-box',
           backgroundColor:
             setting.format === 'png1' ? 'unset' : 'var(--background-primary)',
+          color: 'var(--text-normal)',
           position: 'relative',
           transform: clipStartY !== undefined ? `translateY(-${clipStartY}px)` : undefined,
         }}

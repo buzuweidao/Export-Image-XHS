@@ -83,6 +83,18 @@ const Control: FC<{
       );
     }
 
+    case 'color': {
+      return (
+        <input
+          type='color'
+          value={typeof value === 'string' && value ? value : '#ffffff'}
+          onChange={e => {
+            onChange(e.target.value);
+          }}
+        />
+      );
+    }
+
     case 'boolean': {
       return (
         <div

@@ -180,6 +180,10 @@ export default class ExportImagePlugin extends Plugin {
     this.settings = {
       ...DEFAULT_SETTINGS,
       ...(data ?? {}),
+      exportTheme: {
+        ...DEFAULT_SETTINGS.exportTheme,
+        ...(data?.exportTheme ?? {}),
+      },
       padding: {
         ...DEFAULT_SETTINGS.padding,
         ...(data?.padding ?? {}),

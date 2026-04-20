@@ -72,6 +72,16 @@ async function getBlob(el: HTMLElement, resolutionMode: ResolutionMode, type: st
   });
 }
 
+function copyInlineCssVariables(source: HTMLElement, target: HTMLElement) {
+  Array.from(source.style).forEach(name => {
+    if (!name.startsWith('--')) {
+      return;
+    }
+
+    target.style.setProperty(name, source.style.getPropertyValue(name));
+  });
+}
+
 async function makePdf(blob: Blob, el: HTMLElement) {
   const dataUrl = await fileToBase64(blob);
   const pdf = new JsPdf({
@@ -363,6 +373,8 @@ export async function saveAll(
     const authorElement = rootElement.querySelector<HTMLElement>('.user-info-container');
     const watermarkElement = rootElement.querySelector<HTMLElement>('.export-image-static-watermark');
     const bodyTarget = bodyElement || rootElement;
+    const bodyTopPadding = settings.padding?.top ?? 0;
+    const bodyBottomPadding = settings.padding?.bottom ?? 0;
     const authorHeight = (
       settings.authorInfo.show
       && settings.authorInfo.position === 'top'
@@ -388,6 +400,8 @@ export async function saveAll(
         hasAuthorElement: Boolean(authorElement),
         hasWatermarkElement: Boolean(watermarkElement),
       });
+      const topInset = pageIndex === 0 ? 0 : bodyTopPadding;
+      const bottomInset = bodyBottomPadding;
       const pageEl = document.createElement('div');
       pageEl.className = getPagedCaptureShellClassName(rootElement.className);
       pageEl.setCssProps({
@@ -398,7 +412,9 @@ export async function saveAll(
         'box-sizing': 'border-box',
         'pointer-events': 'none',
       });
+      copyInlineCssVariables(rootElement, pageEl);
       pageEl.style.background = getComputedStyle(target.contentElement).background;
+      pageEl.style.color = getComputedStyle(rootElement).color;
 
       if (layerPlan.includeAuthor && authorElement) {
         pageEl.append(authorElement.cloneNode(true));
@@ -406,6 +422,15 @@ export async function saveAll(
 
       const viewportEl = document.createElement('div');
       viewportEl.setCssProps({
+        height: `${Math.max(1, viewportHeight + topInset + bottomInset)}px`,
+        position: 'relative',
+        'box-sizing': 'border-box',
+        'padding-top': `${topInset}px`,
+        'padding-bottom': `${bottomInset}px`,
+      });
+
+      const clipEl = document.createElement('div');
+      clipEl.setCssProps({
         height: `${Math.max(1, viewportHeight)}px`,
         overflow: 'hidden',
         position: 'relative',
@@ -414,7 +439,8 @@ export async function saveAll(
       const bodyClone = bodyTarget.cloneNode(true) as HTMLElement;
       Object.assign(bodyClone.style, getPagedBodyCloneStyle(startY));
       bodyClone.querySelectorAll('.export-image-split-line').forEach(line => line.remove());
-      viewportEl.append(bodyClone);
+      clipEl.append(bodyClone);
+      viewportEl.append(clipEl);
       pageEl.append(viewportEl);
       if (layerPlan.includeWatermark && watermarkElement) {
         pageEl.append(watermarkElement.cloneNode(true));

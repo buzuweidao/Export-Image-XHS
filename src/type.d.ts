@@ -9,6 +9,10 @@ declare type ISettings = {
   showMetadata: boolean;
   recursive: boolean;
   quickExportSelection: boolean;
+  exportTheme: {
+    mode: 'obsidian' | 'custom';
+    backgroundColor: string;
+  };
   padding: {
     top: number;
     right: number;
@@ -59,7 +63,7 @@ declare type ISettings = {
 
 type ConditionType<T> = { flag: unknown; path: string } | ((data: T) => boolean);
 
-type ValueType = 'number' | 'string' | 'boolean' | 'file';
+type ValueType = 'number' | 'string' | 'boolean' | 'file' | 'color';
 
 type BaseFieldSchema<T> = {
   label: string;

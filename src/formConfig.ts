@@ -36,6 +36,23 @@ export const createSettingConfig = async (app: App): Promise<SettingItem[]> => {
       placeholder: '18',
     },
     {
+      id: 'exportTheme.mode',
+      label: '导出主题',
+      description: '控制导出卡片是否跟随 Obsidian 主题，或使用自定义背景色。',
+      type: 'dropdown',
+      options: [
+        { value: 'obsidian', text: '跟随 Obsidian' },
+        { value: 'custom', text: '自定义背景' },
+      ],
+    },
+    {
+      id: 'exportTheme.backgroundColor',
+      label: '背景颜色',
+      type: 'color',
+      defaultValue: '#ffffff',
+      show: (settings) => settings.exportTheme.mode === 'custom',
+    },
+    {
       id: 'padding.top',
       label: L.setting.padding.top(),
       description: L.setting.padding.description(),
