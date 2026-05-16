@@ -33,12 +33,8 @@ export default async function (
   // 如果是快速导出，创建隐藏的div元素进行处理
   if (skipConfig) {
     const div = createDiv();
-    div.setCssProps({
-      width: `${settings.width || 400}px`,
-      position: 'fixed',
-      top: '9999px',
-      left: '9999px',
-    });
+    div.addClass('export-image-quick-capture-host');
+    div.style.width = `${settings.width || 400}px`;
     document.body.appendChild(div);
     const root = createRoot(div);
     root.render(
@@ -70,10 +66,7 @@ export default async function (
     // 先创建模态框并显示加载状态
     const modal = new Modal(app);
     modal.setTitle(L.imageExportPreview());
-    modal.modalEl.setCssProps({
-      width: '85vw',
-      'max-width': '1500px',
-    });
+    modal.modalEl.addClass('export-image-file-modal');
     modal.open();
     const root = createRoot(modal.contentEl);
     
@@ -116,13 +109,7 @@ async function loadDocumentContent(
     el.empty();
 
     // 临时将 el 挂载到 DOM，Obsidian 的嵌入后处理器需要元素在 DOM 中
-    el.setCssProps({
-      position: 'fixed',
-      top: '-99999px',
-      left: '-99999px',
-      visibility: 'hidden',
-      'pointer-events': 'none',
-    });
+    el.addClass('export-image-render-buffer');
     document.body.appendChild(el);
 
     const renderChild = new MarkdownRenderChild(el);
@@ -143,13 +130,7 @@ async function loadDocumentContent(
 
     // 从 DOM 中移除并清理临时样式
     el.remove();
-    el.setCssProps({
-      position: '',
-      top: '',
-      left: '',
-      visibility: '',
-      'pointer-events': '',
-    });
+    el.removeClass('export-image-render-buffer');
 
     await delay(100);
     return el;
@@ -159,13 +140,7 @@ async function loadDocumentContent(
     if (el.parentNode) {
       el.remove();
     }
-    el.setCssProps({
-      position: '',
-      top: '',
-      left: '',
-      visibility: '',
-      'pointer-events': '',
-    });
+    el.removeClass('export-image-render-buffer');
     return el;
   }
 }

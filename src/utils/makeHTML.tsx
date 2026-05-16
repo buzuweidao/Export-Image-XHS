@@ -29,13 +29,7 @@ export default async function makeHTML(
   const element = document.createElement('div');
 
   // 临时挂载到 DOM，Obsidian 嵌入后处理器需要元素在 DOM 中
-  element.setCssProps({
-    position: 'fixed',
-    top: '-99999px',
-    left: '-99999px',
-    visibility: 'hidden',
-    'pointer-events': 'none',
-  });
+  element.addClass('export-image-render-buffer');
   document.body.appendChild(element);
 
   const renderChild = new MarkdownRenderChild(element);
@@ -54,13 +48,7 @@ export default async function makeHTML(
 
   // 清理临时挂载
   element.remove();
-  element.setCssProps({
-    position: '',
-    top: '',
-    left: '',
-    visibility: '',
-    'pointer-events': '',
-  });
+  element.removeClass('export-image-render-buffer');
 
   const metadataMap = app.metadataCache.getAllPropertyInfos() as Record<string, { type: MetadataType }>;
 

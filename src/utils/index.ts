@@ -77,7 +77,7 @@ export function getMetadata(file: TFile, app: App) {
 
 export async function delay(time: number): Promise<void> {
   return new Promise(resolve => {
-    setTimeout(() => {
+    window.setTimeout(() => {
       resolve();
     }, time);
   });

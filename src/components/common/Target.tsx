@@ -137,26 +137,18 @@ const Target = forwardRef<TargetRef, TargetProps>(({
         return;
       }
 
-      clipRef.current.setCssProps({
-        height: `${height}px`,
-        overflow: 'hidden',
-      });
-      rootRef.current.setCssProps({
-        transform: `translateY(-${startY}px)`,
-      });
+      clipRef.current.style.height = `${height}px`;
+      clipRef.current.addClass('export-image-clip-overflow-hidden');
+      rootRef.current.style.transform = `translateY(-${startY}px)`;
     },
     resetClip() {
       if (!clipRef.current || !rootRef.current) {
         return;
       }
 
-      clipRef.current.setCssProps({
-        height: '',
-        overflow: '',
-      });
-      rootRef.current.setCssProps({
-        transform: '',
-      });
+      clipRef.current.style.removeProperty('height');
+      clipRef.current.removeClass('export-image-clip-overflow-hidden');
+      rootRef.current.style.removeProperty('transform');
     },
   }), []);
 

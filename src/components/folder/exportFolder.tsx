@@ -7,9 +7,7 @@ import ModalContent from './ModalContent';
 export default function (app: App, settings: ISettings, folder: TFolder) {
   const modal = new Modal(app);
   modal.setTitle(L.exportFolder());
-  modal.modalEl.setCssProps({
-    width: '800px',
-  });
+  modal.modalEl.addClass('export-image-folder-modal');
   modal.open();
   const root = createRoot(modal.contentEl);
   root.render(

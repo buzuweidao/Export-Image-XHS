@@ -111,15 +111,12 @@ function cloneForCapture(el: HTMLElement) {
   const clone = el.cloneNode(true) as HTMLElement;
   clone.className = sanitizeCaptureClassName(clone.className);
   clone.querySelectorAll('.is-selected').forEach(node => {
-    if (node instanceof HTMLElement) {
+    if (node.instanceOf(HTMLElement)) {
       node.className = sanitizeCaptureClassName(node.className);
     }
   });
   clone.querySelectorAll('[data-export-control="true"]').forEach(node => node.remove());
   clone.classList.add('export-image-hidden');
-  clone.setCssProps({
-    'pointer-events': 'none',
-  });
   document.body.append(clone);
   return clone;
 }
@@ -307,18 +304,14 @@ export async function saveMultipleFiles(
       element: el,
       contentElement: el,
       setClip: (startY: number, height: number) => {
-        el.setCssProps({
-          height: `${height}px`,
-          overflow: 'hidden',
-          transform: `translateY(-${startY}px)`,
-        });
+        el.style.height = `${height}px`;
+        el.addClass('export-image-clip-overflow-hidden');
+        el.style.transform = `translateY(-${startY}px)`;
       },
       resetClip: () => {
-        el.setCssProps({
-          height: '',
-          overflow: '',
-          transform: '',
-        });
+        el.style.removeProperty('height');
+        el.removeClass('export-image-clip-overflow-hidden');
+        el.style.removeProperty('transform');
       },
     };
 
@@ -404,14 +397,10 @@ export async function saveAll(
       const bottomInset = bodyBottomPadding;
       const pageEl = document.createElement('div');
       pageEl.className = getPagedCaptureShellClassName(rootElement.className);
-      pageEl.setCssProps({
-        width: `${target.element.clientWidth}px`,
-        height: `${pageHeight}px`,
-        position: layerPlan.shellPosition,
-        overflow: 'hidden',
-        'box-sizing': 'border-box',
-        'pointer-events': 'none',
-      });
+      pageEl.addClass('export-image-capture-page');
+      pageEl.style.width = `${target.element.clientWidth}px`;
+      pageEl.style.height = `${pageHeight}px`;
+      pageEl.style.position = layerPlan.shellPosition;
       copyInlineCssVariables(rootElement, pageEl);
       pageEl.style.background = getComputedStyle(target.contentElement).background;
       pageEl.style.color = getComputedStyle(rootElement).color;
@@ -421,20 +410,14 @@ export async function saveAll(
       }
 
       const viewportEl = document.createElement('div');
-      viewportEl.setCssProps({
-        height: `${Math.max(1, viewportHeight + topInset + bottomInset)}px`,
-        position: 'relative',
-        'box-sizing': 'border-box',
-        'padding-top': `${topInset}px`,
-        'padding-bottom': `${bottomInset}px`,
-      });
+      viewportEl.addClass('export-image-capture-viewport');
+      viewportEl.style.height = `${Math.max(1, viewportHeight + topInset + bottomInset)}px`;
+      viewportEl.style.paddingTop = `${topInset}px`;
+      viewportEl.style.paddingBottom = `${bottomInset}px`;
 
       const clipEl = document.createElement('div');
-      clipEl.setCssProps({
-        height: `${Math.max(1, viewportHeight)}px`,
-        overflow: 'hidden',
-        position: 'relative',
-      });
+      clipEl.addClass('export-image-capture-clip');
+      clipEl.style.height = `${Math.max(1, viewportHeight)}px`;
 
       const bodyClone = bodyTarget.cloneNode(true) as HTMLElement;
       Object.assign(bodyClone.style, getPagedBodyCloneStyle(startY));

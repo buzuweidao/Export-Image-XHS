@@ -326,6 +326,50 @@ If your plugin does not need CSS, delete this file.
   top: 9999px;
   width: auto;
   height: auto;
+  pointer-events: none;
+}
+
+.export-image-render-buffer {
+  position: fixed;
+  top: -99999px;
+  left: -99999px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.export-image-quick-capture-host {
+  position: fixed;
+  top: 9999px;
+  left: 9999px;
+}
+
+.export-image-file-modal {
+  width: 85vw;
+  max-width: 1500px;
+}
+
+.export-image-folder-modal {
+  width: 800px;
+}
+
+.export-image-clip-overflow-hidden,
+.export-image-capture-page,
+.export-image-capture-clip {
+  overflow: hidden;
+}
+
+.export-image-capture-page {
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.export-image-capture-viewport,
+.export-image-capture-clip {
+  position: relative;
+}
+
+.export-image-capture-viewport {
+  box-sizing: border-box;
 }
 
 .export-image-split-hr hr {

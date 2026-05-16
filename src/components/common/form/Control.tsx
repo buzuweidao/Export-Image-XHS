@@ -233,7 +233,7 @@ const Control: FC<{
               };
 
               modal.open();
-              setTimeout(() => input.focus(), 0);
+              window.setTimeout(() => input.focus(), 0);
             }}>
               {L.imageUrl()}
             </button>

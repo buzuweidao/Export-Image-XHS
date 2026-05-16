@@ -6,7 +6,7 @@ loadAllLocales();
 
 let locale: Locales = 'en';
 try {
-  const currentLanguage = (globalThis as typeof globalThis & {
+  const currentLanguage = (window as Window & {
     i18next?: {
       language?: string;
     };

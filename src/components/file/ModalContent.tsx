@@ -384,8 +384,8 @@ const ModalContent: FC<{
   }, [formData]);
 
   useEffect(() => {
-    if (markdownEl && markdownEl instanceof HTMLElement && markdownEl.innerHTML && markdownEl.innerHTML.length > 0) {
-      setTimeout(() => {
+    if (markdownEl && markdownEl.instanceOf(HTMLElement) && markdownEl.innerHTML && markdownEl.innerHTML.length > 0) {
+      window.setTimeout(() => {
         setIsLoading(false);
       }, 100);
     }
@@ -394,10 +394,10 @@ const ModalContent: FC<{
       setIsLoading(false);
     };
 
-    globalThis.document.addEventListener('export-image-content-loaded', handleContentLoaded);
+    window.document.addEventListener('export-image-content-loaded', handleContentLoaded);
 
     return () => {
-      globalThis.document.removeEventListener('export-image-content-loaded', handleContentLoaded);
+      window.document.removeEventListener('export-image-content-loaded', handleContentLoaded);
     };
   }, [markdownEl]);
 

@@ -311,7 +311,7 @@ export class SettingRenderer {
             };
 
             modal.open();
-            setTimeout(() => input.focus(), 0);
+            window.setTimeout(() => input.focus(), 0);
           };
 
           setting.settingEl.appendChild(containerDiv);

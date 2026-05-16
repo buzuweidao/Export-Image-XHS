@@ -1,8 +1,8 @@
 {
 	"id": "export-image-xhs",
 	"name": "Export Image XHS",
-	"version": "2.6.2",
-	"minAppVersion": "1.4.0",
+	"version": "2.6.3",
+	"minAppVersion": "1.5.7",
 	"description": "Export notes as shareable multi-image cards with editable live preview, Xiaohongshu-oriented layout, author header, watermark, and pagination controls.",
 	"author": "buzuweidao",
 	"authorUrl": "https://github.com/buzuweidao",

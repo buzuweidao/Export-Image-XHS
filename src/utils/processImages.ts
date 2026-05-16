@@ -63,17 +63,17 @@ export async function waitForImages(
 		}
 
 		return new Promise<void>(resolve => {
-			const timer = setTimeout(() => {
+			const timer = window.setTimeout(() => {
 				resolve();
 			}, timeoutMs);
 
 			img.addEventListener('load', () => {
-				clearTimeout(timer);
+				window.clearTimeout(timer);
 				resolve();
 			}, { once: true });
 
 			img.addEventListener('error', () => {
-				clearTimeout(timer);
+				window.clearTimeout(timer);
 				resolve();
 			}, { once: true });
 		});
