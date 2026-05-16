@@ -3,7 +3,7 @@ import {
 } from 'obsidian';
 import saveAs from 'file-saver';
 import JsPdf from 'jspdf';
-import JSZip from 'jszip';
+import { zipSync } from 'fflate';
 import domtoimage from 'dom-to-image-more';
 import L from '../L';
 import makeHTML from './makeHTML';
@@ -105,6 +105,15 @@ async function saveToVault(app: App, blob: Blob, filename: string) {
   const filePath = await app.fileManager.getAvailablePathForAttachment(filename);
   await app.vault.createBinary(filePath, await blob.arrayBuffer());
   return filePath;
+}
+
+async function makeZipBlob(files: { blob: Blob; filename: string }[]) {
+  const entries: Record<string, Uint8Array> = {};
+  for (const { blob, filename } of files) {
+    entries[filename] = new Uint8Array(await blob.arrayBuffer());
+  }
+
+  return new Blob([zipSync(entries)], { type: 'application/zip' });
 }
 
 function cloneForCapture(el: HTMLElement) {
@@ -257,7 +266,6 @@ export async function savePageElements(
   }
 
   const ext = format.replace(/\d$/, '');
-  const zip = new JSZip();
   const blobs: { blob: Blob; filename: string }[] = [];
 
   for (let index = 0; index < pageElements.length; index++) {
@@ -278,10 +286,7 @@ export async function savePageElements(
     return;
   }
 
-  for (const { blob, filename } of blobs) {
-    zip.file(filename, blob);
-  }
-  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const zipBlob = await makeZipBlob(blobs);
   saveAs(zipBlob, `${title.replaceAll(/\s+/g, '_')}.zip`);
 }
 
@@ -482,7 +487,6 @@ export async function saveAll(
     } else {
       // 其他图片格式：分别保存每个部分
       const ext = format.replace(/\d$/, '');
-      const zip = new JSZip();
       const blobs: { blob: Blob; filename: string }[] = [];
 
       for (let i = 0; i < splitPositions.length; i++) {
@@ -512,10 +516,7 @@ export async function saveAll(
         }
       } else {
         // 在桌面端创建 zip
-        for (const { blob, filename } of blobs) {
-          zip.file(filename, blob);
-        }
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const zipBlob = await makeZipBlob(blobs);
         saveAs(zipBlob, `${title.replaceAll(/\s+/g, '_')}.zip`);
       }
     }

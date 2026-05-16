@@ -1,44 +1,33 @@
 Bundled license information:
 
-react/cjs/react.production.js:
+react/cjs/react.production.min.js:
   /**
    * @license React
-   * react.production.js
+   * react.production.min.js
    *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   * Copyright (c) Facebook, Inc. and its affiliates.
    *
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
    */
 
-scheduler/cjs/scheduler.production.js:
+scheduler/cjs/scheduler.production.min.js:
   /**
    * @license React
-   * scheduler.production.js
+   * scheduler.production.min.js
    *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   * Copyright (c) Facebook, Inc. and its affiliates.
    *
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
    */
 
-react-dom/cjs/react-dom.production.js:
+react-dom/cjs/react-dom.production.min.js:
   /**
    * @license React
-   * react-dom.production.js
+   * react-dom.production.min.js
    *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
-
-react-dom/cjs/react-dom-client.production.js:
-  /**
-   * @license React
-   * react-dom-client.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   * Copyright (c) Facebook, Inc. and its affiliates.
    *
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
@@ -83,19 +72,6 @@ svg-pathdata/lib/SVGPathData.module.js:
   OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** */
-
-jszip/dist/jszip.min.js:
-  /*!
-  
-  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
-  <http://stuartk.com/jszip>
-  
-  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
-  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
-  
-  JSZip uses the library pako released under the MIT license :
-  https://github.com/nodeca/pako/blob/main/LICENSE
-  */
 
 dom-to-image-more/dist/dom-to-image-more.min.js:
   /*! dom-to-image-more 16-10-2024 */
